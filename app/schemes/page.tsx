@@ -140,27 +140,30 @@ export default function SchemesPage() {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
+      <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* 面包屑导航 */}
             <nav className="flex items-center space-x-2 text-sm">
-              <Link href="/" className="text-gray-500 hover:text-gray-900 transition-colors">
+              <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
                 首页
               </Link>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-900 font-medium">我的方案</span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <span className="text-foreground font-medium">我的方案</span>
             </nav>
 
-            {/* 新建方案按钮 */}
-            <Link href="/design">
-              <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-5 h-5 mr-2" />
-                新建方案
-              </Button>
-            </Link>
+            {/* 右侧操作区 */}
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <Link href="/design">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700 touch-manipulation">
+                  <Plus className="w-5 h-5 mr-2" />
+                  新建方案
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

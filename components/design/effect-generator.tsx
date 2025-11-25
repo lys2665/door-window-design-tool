@@ -15,7 +15,10 @@ import {
   Maximize2,
   X,
   Check,
-  Loader2
+  Loader2,
+  FileText,
+  ZoomIn,
+  ZoomOut
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -37,6 +40,11 @@ export function EffectGenerator({ windowData, styleConfig, uploadedPhoto }: Effe
   const [isDetecting, setIsDetecting] = useState(false)
   const [detectedWindow, setDetectedWindow] = useState<{x: number, y: number, width: number, height: number} | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  // 新增：缩放状态
+  const [zoom, setZoom] = useState(100)
+  const imageContainerRef = useRef<HTMLDivElement>(null)
+  const touchStartDistance = useRef<number>(0)
 
   // 模拟检测窗户位置
   const detectWindowPosition = () => {
@@ -81,12 +89,34 @@ export function EffectGenerator({ windowData, styleConfig, uploadedPhoto }: Effe
     }
   }
 
-  // 生成效果图
+  // 生成效果图或图纸
   const generateEffect = () => {
-    if (!scenePhoto && !effectImage) {
-      // 没有照片，生成渲染场景
+    if (viewMode === "blueprint") {
+      // 图纸模式 - 直接生成施工图纸
       setIsGenerating(true)
       setGenerationProgress(0)
+      setZoom(100) // 重置缩放
+      
+      const interval = setInterval(() => {
+        setGenerationProgress(prev => {
+          if (prev >= 100) {
+            clearInterval(interval)
+            setIsGenerating(false)
+            // 使用预设的施工图纸
+            setEffectImage('/architectural-blueprint-technical-drawing.jpg')
+            toast.success("施工图纸生成完成", {
+              description: "包含详细的尺寸和安装说明"
+            })
+            return 100
+          }
+          return prev + 10
+        })
+      }, 200)
+    } else if (!scenePhoto && !effectImage) {
+      // 效果图模式 - 没有照片，生成渲染场景
+      setIsGenerating(true)
+      setGenerationProgress(0)
+      setZoom(100) // 重置缩放
       
       const interval = setInterval(() => {
         setGenerationProgress(prev => {
@@ -104,9 +134,10 @@ export function EffectGenerator({ windowData, styleConfig, uploadedPhoto }: Effe
         })
       }, 200)
     } else if (scenePhoto) {
-      // 有照片，进行融合
+      // 效果图模式 - 有照片，进行融合
       setIsGenerating(true)
       setGenerationProgress(0)
+      setZoom(100) // 重置缩放
       
       const interval = setInterval(() => {
         setGenerationProgress(prev => {
@@ -143,229 +174,341 @@ export function EffectGenerator({ windowData, styleConfig, uploadedPhoto }: Effe
   const regenerate = () => {
     setEffectImage(null)
     setGenerationProgress(0)
+    setZoom(100) // 重置缩放
+    toast.info("准备重新生成", {
+      description: viewMode === "blueprint" ? "施工图纸" : "效果图"
+    })
+    // 延迟后自动重新生成
+    setTimeout(() => {
+      generateEffect()
+    }, 500)
+  }
+
+  // 视图模式：效果图 或 图纸模式
+  const [viewMode, setViewMode] = useState<"effect" | "blueprint">("effect")
+  
+  // 鼠标滚轮缩放
+  const handleWheel = (e: React.WheelEvent) => {
+    if (effectImage) {
+      e.preventDefault()
+      const delta = e.deltaY > 0 ? -5 : 5
+      setZoom(prev => Math.max(50, Math.min(200, prev + delta)))
+    }
+  }
+
+  // 触摸手势缩放（双指）
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && effectImage) {
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+      touchStartDistance.current = distance
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchStartDistance.current > 0 && effectImage) {
+      e.preventDefault()
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+      const delta = (distance - touchStartDistance.current) * 0.2
+      setZoom(prev => Math.max(50, Math.min(200, prev + delta)))
+      touchStartDistance.current = distance
+    }
+  }
+
+  const handleTouchEnd = () => {
+    touchStartDistance.current = 0
   }
 
   return (
-    <Card className="h-full flex flex-col">
-      {/* 头部 */}
-      <div className="p-5 border-b">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold flex items-center gap-2">
-            <Eye className="h-5 w-5 text-primary" />
-            效果图预览
-          </h2>
-          <div className="flex items-center gap-2">
-            {effectImage && (
-              <Badge variant="default" className="gap-1">
-                <Check className="w-3 h-3" />
-                已生成
-              </Badge>
-            )}
-            {scenePhoto && !effectImage && (
-              <Badge variant="secondary" className="gap-1">
-                <Camera className="w-3 h-3" />
-                照片已上传
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
+    <Card className="h-full flex flex-col relative">
+      {/* 主显示区域 - 去除头部，将tab移到画布内 */}
 
-      {/* 主显示区域 */}
-      <div className="flex-1 p-5 overflow-auto">
-        <div className="h-full flex flex-col gap-4">
-          {/* 效果图显示区 */}
-          <div className="flex-1 relative bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden min-h-[400px]">
-            {!effectImage && !scenePhoto && !isGenerating && (
-              // 默认状态 - 未上传照片
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-muted-foreground max-w-sm">
-                  <Eye className="h-16 w-16 mx-auto mb-4 opacity-20" />
-                  <div className="text-lg font-medium mb-2">准备生成效果图</div>
-                  <div className="text-sm">
-                    您可以上传现场照片进行场景融合，<br />
-                    或直接生成渲染效果图
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {scenePhoto && !effectImage && !isGenerating && (
-              // 显示上传的照片 + 检测框
-              <div className="absolute inset-0">
-                <img 
-                  src={scenePhoto} 
-                  alt="Scene" 
-                  className="w-full h-full object-contain"
-                />
-                
-                {/* 检测中的遮罩 */}
-                {isDetecting && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <Loader2 className="w-12 h-12 mx-auto mb-3 animate-spin" />
-                      <div className="text-lg font-medium">AI识别中...</div>
-                      <div className="text-sm opacity-80 mt-1">正在定位门窗安装位置</div>
-                    </div>
-                  </div>
+      <div className="flex-1 overflow-hidden">
+        {/* 画布显示区 */}
+        <div 
+          ref={imageContainerRef}
+          className="relative w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900"
+          onWheel={handleWheel}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* 左上角：视图模式切换 - 带阴影蒙层 */}
+          <div className="absolute top-4 left-4 z-10">
+            <div className="flex items-center gap-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-1">
+              <button
+                onClick={() => {
+                  setViewMode("effect")
+                  setEffectImage(null)
+                  setGenerationProgress(0)
+                }}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
+                  viewMode === "effect"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
-                
-                {/* 检测到的窗户位置 */}
-                {detectedWindow && !isDetecting && (
-                  <div 
-                    className="absolute border-4 border-primary rounded-lg animate-pulse"
-                    style={{
-                      left: `${detectedWindow.x}%`,
-                      top: `${detectedWindow.y}%`,
-                      width: `${detectedWindow.width}%`,
-                      height: `${detectedWindow.height}%`,
-                    }}
-                  >
-                    <div className="absolute -top-8 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded">
-                      检测到的门窗位置
-                    </div>
-                  </div>
+              >
+                <Eye className="w-3.5 h-3.5" />
+                效果图
+              </button>
+              <button
+                onClick={() => {
+                  setViewMode("blueprint")
+                  setEffectImage(null)
+                  setGenerationProgress(0)
+                }}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-all flex items-center gap-1.5",
+                  viewMode === "blueprint"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 )}
-              </div>
-            )}
-
-            {isGenerating && (
-              // 生成中
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
-                <div className="text-center max-w-md w-full px-8">
-                  <Sparkles className="h-16 w-16 mx-auto mb-4 text-primary animate-pulse" />
-                  <div className="text-lg font-medium mb-3">
-                    {scenePhoto ? 'AI场景融合中...' : 'AI效果图渲染中...'}
-                  </div>
-                  <Progress value={generationProgress} className="h-2 mb-2" />
-                  <div className="text-sm text-muted-foreground">
-                    {generationProgress}% 完成
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-3">
-                    {scenePhoto ? '正在将您的设计方案融合到照片中' : '正在渲染真实场景效果'}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {effectImage && !isGenerating && (
-              // 显示生成的效果图
-              <div className="absolute inset-0 group">
-                <img 
-                  src={effectImage} 
-                  alt="Effect" 
-                  className="w-full h-full object-contain"
-                />
-                
-                {/* 悬浮操作栏 */}
-                <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    variant="secondary" 
-                    size="icon"
-                    className="bg-white/90 hover:bg-white"
-                    onClick={regenerate}
-                  >
-                    <RotateCw className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    variant="secondary" 
-                    size="icon"
-                    className="bg-white/90 hover:bg-white"
-                  >
-                    <Maximize2 className="w-4 h-4" />
-                  </Button>
-                </div>
-
-                {/* 水印 */}
-                <div className="absolute bottom-4 right-4 bg-black/50 text-white text-xs px-3 py-1.5 rounded backdrop-blur">
-                  AI生成效果图 - {new Date().toLocaleDateString()}
-                </div>
-              </div>
-            )}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                图纸
+              </button>
+            </div>
           </div>
-
-          {/* 照片上传区（如果还没上传） */}
-          {!scenePhoto && !isGenerating && (
-            <Card className="p-4 border-2 border-dashed">
-              <div className="flex items-start gap-3">
-                <Camera className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm mb-1">上传现场照片（可选）</div>
-                  <p className="text-xs text-muted-foreground mb-3">
-                    上传安装位置照片，AI自动识别并融合设计方案
-                  </p>
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="gap-2"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload className="h-4 w-4" />
-                      选择照片
-                    </Button>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handlePhotoUpload}
-                    />
-                  </div>
+          {/* 效果图模式 - 没有照片也没有效果图 */}
+          {viewMode === "effect" && !effectImage && !scenePhoto && !isGenerating && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center text-muted-foreground max-w-md">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                  <Sparkles className="h-10 w-10 text-primary" />
                 </div>
+                <div className="text-lg font-medium mb-2 text-foreground">
+                  准备生成效果图
+                </div>
+                <div className="text-sm mb-6">
+                  上传现场照片进行AI场景融合，<br />或直接生成3D渲染效果
+                </div>
+                {/* 上传现场照片按钮 */}
+                <Button 
+                  size="lg"
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-5 w-5" />
+                  上传现场照片
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handlePhotoUpload}
+                />
               </div>
-            </Card>
+            </div>
           )}
 
-          {/* 操作按钮 */}
-          {!effectImage && !isGenerating && (
-            <Button 
-              className="w-full gap-2 h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-              onClick={generateEffect}
-            >
-              <Sparkles className="h-5 w-5" />
-              {scenePhoto ? 'AI场景融合' : '生成渲染效果图'}
-            </Button>
+          {/* 图纸模式 - 没有图纸 */}
+          {viewMode === "blueprint" && !effectImage && !isGenerating && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="text-center text-muted-foreground max-w-md">
+                <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+                  <FileText className="h-10 w-10 text-primary" />
+                </div>
+                <div className="text-lg font-medium mb-2 text-foreground">
+                  准备生成施工图纸
+                </div>
+                <div className="text-sm mb-6">
+                  生成包含详细尺寸和安装说明的施工图纸
+                </div>
+                {/* 生成施工图按钮 */}
+                <Button 
+                  size="lg"
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  onClick={generateEffect}
+                >
+                  <Sparkles className="h-5 w-5" />
+                  生成施工图
+                </Button>
+              </div>
+            </div>
           )}
 
+          {/* 效果图模式 - 已上传照片但未生成 */}
+          {viewMode === "effect" && scenePhoto && !effectImage && !isGenerating && (
+            <div className="absolute inset-0">
+              <img 
+                src={scenePhoto} 
+                alt="Scene" 
+                className="w-full h-full object-contain"
+              />
+              
+              {/* 检测中的遮罩 */}
+              {isDetecting && (
+                <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <Loader2 className="w-12 h-12 mx-auto mb-3 animate-spin" />
+                    <div className="text-lg font-medium">AI识别中...</div>
+                    <div className="text-sm opacity-80 mt-1">正在定位门窗安装位置</div>
+                  </div>
+                </div>
+              )}
+              
+              {/* 检测到的窗户位置 */}
+              {detectedWindow && !isDetecting && (
+                <div 
+                  className="absolute border-4 border-primary rounded-lg animate-pulse"
+                  style={{
+                    left: `${detectedWindow.x}%`,
+                    top: `${detectedWindow.y}%`,
+                    width: `${detectedWindow.width}%`,
+                    height: `${detectedWindow.height}%`,
+                  }}
+                >
+                  <div className="absolute -top-8 left-0 bg-primary text-primary-foreground text-xs px-2 py-1 rounded shadow-lg">
+                    检测到的门窗位置
+                  </div>
+                </div>
+              )}
+              
+              {/* 蒙层 + 生成效果图按钮（居中显示）*/}
+              {!isDetecting && (
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+                  <Button 
+                    size="lg"
+                    className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl text-base px-8 py-6 h-auto"
+                    onClick={generateEffect}
+                  >
+                    <Sparkles className="h-6 w-6" />
+                    生成效果图
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 生成中 */}
+          {isGenerating && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+              <div className="text-center max-w-md w-full px-8">
+                <Sparkles className="h-16 w-16 mx-auto mb-4 text-primary animate-pulse" />
+                <div className="text-lg font-medium mb-3 text-foreground">
+                  {viewMode === "blueprint" 
+                    ? '施工图纸生成中...' 
+                    : scenePhoto 
+                      ? 'AI场景融合中...' 
+                      : 'AI效果图渲染中...'}
+                </div>
+                <Progress value={generationProgress} className="h-2 mb-2" />
+                <div className="text-sm text-muted-foreground">
+                  {generationProgress}% 完成
+                </div>
+                <div className="text-xs text-muted-foreground mt-3">
+                  {viewMode === "blueprint"
+                    ? '正在生成包含详细尺寸的施工图纸'
+                    : scenePhoto 
+                      ? '正在将您的设计方案融合到照片中' 
+                      : '正在渲染真实场景效果'}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 显示生成的效果图/图纸 */}
           {effectImage && !isGenerating && (
-            <div className="grid grid-cols-2 gap-3">
-              <Button 
-                variant="outline"
-                className="gap-2"
-                onClick={regenerate}
-              >
-                <RotateCw className="h-4 w-4" />
-                重新生成
-              </Button>
-              <Button 
-                className="gap-2"
-                onClick={downloadEffect}
-              >
-                <Download className="h-4 w-4" />
-                下载效果图
-              </Button>
+            <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+              <img 
+                src={effectImage} 
+                alt={viewMode === "blueprint" ? "施工图纸" : "效果图"} 
+                className="transition-transform duration-200 ease-out"
+                style={{ 
+                  transform: `scale(${zoom / 100})`,
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+              
+              {/* 右上角操作按钮 */}
+              <div className="absolute top-4 right-4 flex flex-col gap-2">
+                {/* 重新生成按钮 */}
+                <Button 
+                  size="icon"
+                  className="bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 backdrop-blur-md shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+                  onClick={regenerate}
+                  title="重新生成"
+                >
+                  <RotateCw className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                </Button>
+                {/* 下载按钮 */}
+                <Button 
+                  size="icon"
+                  className="bg-white/90 dark:bg-gray-900/90 hover:bg-white dark:hover:bg-gray-900 backdrop-blur-md shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+                  onClick={downloadEffect}
+                  title="下载"
+                >
+                  <Download className="w-4 h-4 text-gray-700 dark:text-gray-300" />
+                </Button>
+              </div>
+
+              {/* 底部缩放控制 */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+                <div className="flex items-center gap-2 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200/50 dark:border-gray-700/50 p-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setZoom(prev => Math.max(50, prev - 10))}
+                    className="h-8 w-8 p-0"
+                    disabled={zoom <= 50}
+                  >
+                    <ZoomOut className="w-4 h-4" />
+                  </Button>
+                  <span className="text-xs font-mono min-w-[50px] text-center font-medium text-gray-700 dark:text-gray-300">
+                    {zoom}%
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setZoom(prev => Math.min(200, prev + 10))}
+                    className="h-8 w-8 p-0"
+                    disabled={zoom >= 200}
+                  >
+                    <ZoomIn className="w-4 h-4" />
+                  </Button>
+                  <div className="w-px h-4 bg-border mx-1" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setZoom(100)}
+                    className="h-8 px-2 text-xs"
+                  >
+                    重置
+                  </Button>
+                </div>
+              </div>
+
+              {/* 水印 */}
+              <div className="absolute bottom-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-lg backdrop-blur-sm shadow-lg">
+                {viewMode === "blueprint" ? "施工图纸" : "AI效果图"} · {new Date().toLocaleDateString()}
+              </div>
             </div>
           )}
         </div>
+
       </div>
 
-      {/* 提示信息 */}
-      {scenePhoto && detectedWindow && !effectImage && !isGenerating && (
-        <div className="p-4 bg-blue-50 dark:bg-blue-950/20 border-t text-sm">
-          <div className="flex items-start gap-2">
-            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <div className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                AI已识别门窗位置
-              </div>
-              <div className="text-xs text-blue-700 dark:text-blue-300">
-                点击"AI场景融合"将您的设计方案精准融合到照片中
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 隐藏的文件上传input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoUpload}
+      />
     </Card>
   )
 }
