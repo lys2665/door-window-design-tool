@@ -34,6 +34,7 @@ import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { Empty } from "@/components/ui/empty"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // 模拟数据
 const mockSchemeData = {
@@ -172,43 +173,44 @@ export default function SchemeDetailPage({ params }: { params: { id: string } })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* 顶部导航栏 */}
-      <header className="bg-white border-b sticky top-0 z-50 shadow-sm">
+      <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             {/* 面包屑导航 */}
             <nav className="flex items-center space-x-2 text-sm">
-              <Link href="/" className="text-gray-500 hover:text-gray-900 transition-colors">
+              <Link href="/" className="text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
                 首页
               </Link>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <Link href="/schemes" className="text-gray-500 hover:text-gray-900 transition-colors">
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <Link href="/schemes" className="text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
                 我的方案
               </Link>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <Link href="/schemes?category=uncategorized" className="text-gray-500 hover:text-gray-900 transition-colors">
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <Link href="/schemes?category=uncategorized" className="text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
                 未分类
               </Link>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-900 font-medium">方案详情</span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <span className="text-foreground font-medium">方案详情</span>
             </nav>
 
             {/* 右侧操作按钮 */}
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
+              <ThemeToggle />
+              <Button variant="ghost" size="sm" className="touch-manipulation">
                 <Copy className="w-4 h-4 mr-2" />
                 复制
               </Button>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="touch-manipulation">
                 <Edit2 className="w-4 h-4 mr-2" />
                 编辑
               </Button>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" className="touch-manipulation">
                 <Share2 className="w-4 h-4 mr-2" />
                 分享
               </Button>
-              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 touch-manipulation">
                 <Trash2 className="w-4 h-4 mr-2" />
                 删除
               </Button>

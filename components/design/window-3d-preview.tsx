@@ -196,6 +196,7 @@ export function Window3DPreview({ config, windowData }: Window3DPreviewProps) {
   const [zoom, setZoom] = useState(100)
   const [wireframe, setWireframe] = useState(false)
   const controlsRef = useRef<any>(null)
+  const touchStartDistance = useRef<number>(0)
 
   const handleZoomIn = () => {
     setZoom(prev => Math.min(prev + 10, 200))
@@ -212,10 +213,57 @@ export function Window3DPreview({ config, windowData }: Window3DPreviewProps) {
     }
   }
 
+  // 鼠标滚轮缩放
+  const handleWheel = (e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault()
+      const delta = e.deltaY > 0 ? -5 : 5
+      setZoom(prev => Math.max(50, Math.min(200, prev + delta)))
+    }
+  }
+
+  // 触摸手势缩放（双指）
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 2) {
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+      touchStartDistance.current = distance
+    }
+  }
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (e.touches.length === 2 && touchStartDistance.current > 0) {
+      e.preventDefault()
+      const touch1 = e.touches[0]
+      const touch2 = e.touches[1]
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      )
+      const delta = (distance - touchStartDistance.current) * 0.2
+      setZoom(prev => Math.max(50, Math.min(200, prev + delta)))
+      touchStartDistance.current = distance
+    }
+  }
+
+  const handleTouchEnd = () => {
+    touchStartDistance.current = 0
+  }
+
   return (
     <div className="relative w-full h-full">
       {/* 3D Canvas */}
-      <div className="w-full h-full bg-gradient-to-b from-sky-100 to-white rounded-lg overflow-hidden">
+      <div 
+        className="w-full h-full bg-gradient-to-b from-sky-100 to-white rounded-lg overflow-hidden"
+        onWheel={handleWheel}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
         <Canvas shadows>
           {/* 相机 */}
           <PerspectiveCamera 
@@ -255,47 +303,51 @@ export function Window3DPreview({ config, windowData }: Window3DPreviewProps) {
         </Canvas>
       </div>
 
-      {/* 控制面板 */}
-      <div className="absolute bottom-4 left-4 right-4">
-        <Card className="p-2 sm:p-3 bg-white/95 backdrop-blur">
-          <div className="flex items-center justify-center flex-wrap gap-2 sm:gap-4">
+      {/* 控制面板 - 自适应宽度毛玻璃 */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
+        <div className="bg-white/80 backdrop-blur-md rounded-lg shadow-lg border p-2">
+          <div className="flex items-center gap-2">
             {/* 视角控制 */}
-            <Button variant="outline" size="sm" onClick={handleResetView} className="h-8">
-              <Maximize2 className="w-4 h-4" />
-              <span className="ml-1 hidden sm:inline">重置</span>
+            <Button variant="ghost" size="sm" onClick={handleResetView} className="h-8 px-2">
+              <Maximize2 className="w-3.5 h-3.5" />
+              <span className="ml-1 text-xs hidden sm:inline">重置</span>
             </Button>
             
+            <div className="w-px h-4 bg-border" />
+            
             {/* 缩放控制 */}
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Button variant="outline" size="sm" onClick={handleZoomOut} className="h-8">
-                <ZoomOut className="w-4 h-4" />
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={handleZoomOut} className="h-8 w-8 p-0">
+                <ZoomOut className="w-3.5 h-3.5" />
               </Button>
-              <span className="text-xs sm:text-sm font-medium min-w-[50px] text-center">
+              <span className="text-xs font-mono min-w-[45px] text-center font-medium">
                 {zoom}%
               </span>
-              <Button variant="outline" size="sm" onClick={handleZoomIn} className="h-8">
-                <ZoomIn className="w-4 h-4" />
+              <Button variant="ghost" size="sm" onClick={handleZoomIn} className="h-8 w-8 p-0">
+                <ZoomIn className="w-3.5 h-3.5" />
               </Button>
             </div>
             
+            <div className="w-px h-4 bg-border" />
+            
             {/* 显示模式 */}
             <Button 
-              variant={wireframe ? 'default' : 'outline'} 
+              variant={wireframe ? 'default' : 'ghost'} 
               size="sm"
               onClick={() => setWireframe(!wireframe)}
-              className="h-8"
+              className="h-8 px-2"
             >
-              <Grid3x3 className="w-4 h-4" />
-              <span className="ml-1 hidden sm:inline">线框</span>
+              <Grid3x3 className="w-3.5 h-3.5" />
+              <span className="ml-1 text-xs hidden sm:inline">线框</span>
             </Button>
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* 提示信息 */}
       <div className="absolute top-4 left-4 hidden sm:block">
         <Card className="p-2 px-3 bg-white/90 backdrop-blur text-xs text-muted-foreground">
-          拖拽旋转 | 滚轮缩放
+          拖拽旋转 | 滚轮缩放 | Ctrl+滚轮/双指捏合缩放
         </Card>
       </div>
     </div>

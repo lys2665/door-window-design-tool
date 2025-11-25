@@ -25,6 +25,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Slider } from "@/components/ui/slider"
 import { Badge } from "@/components/ui/badge"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -421,7 +422,51 @@ const windowTypeOptions = [
   }
 ]
 
-// 执手样式数据
+// 执手品牌和款式数据（带图片占位符）
+const handleBrands = [
+  {
+    id: "hoppe",
+    name: "好博(HOPPE)",
+    origin: "德国",
+    styles: [
+      { id: "hoppe-atlanta", name: "Atlanta系列", price: 380, material: "锌合金", finish: "亚光银", image: "🔧" },
+      { id: "hoppe-tokyo", name: "Tokyo系列", price: 450, material: "不锈钢", finish: "拉丝银", image: "🔧" },
+      { id: "hoppe-paris", name: "Paris系列", price: 520, material: "铝合金", finish: "香槟金", image: "🔧" },
+    ]
+  },
+  {
+    id: "roto",
+    name: "诺托(ROTO)",
+    origin: "德国",
+    styles: [
+      { id: "roto-classic", name: "Classic经典", price: 320, material: "锌合金", finish: "银白色", image: "🔧" },
+      { id: "roto-comfort", name: "Comfort舒适", price: 420, material: "铝合金", finish: "哑光黑", image: "🔧" },
+      { id: "roto-prestige", name: "Prestige尊贵", price: 580, material: "不锈钢", finish: "拉丝金", image: "🔧" },
+    ]
+  },
+  {
+    id: "siegenia",
+    name: "丝吉利娅(SIEGENIA)",
+    origin: "德国",
+    styles: [
+      { id: "siegenia-standard", name: "Standard标准", price: 350, material: "锌合金", finish: "白色", image: "🔧" },
+      { id: "siegenia-titan", name: "Titan钛金", price: 480, material: "钛合金", finish: "钛金色", image: "🔧" },
+      { id: "siegenia-luxury", name: "Luxury奢华", price: 650, material: "不锈钢", finish: "镀铬", image: "🔧" },
+    ]
+  },
+  {
+    id: "guobiao",
+    name: "国标五金",
+    origin: "中国",
+    styles: [
+      { id: "guobiao-basic", name: "基础款", price: 120, material: "锌合金", finish: "银色", image: "🔧" },
+      { id: "guobiao-enhanced", name: "增强款", price: 180, material: "铝合金", finish: "黑色", image: "🔧" },
+      { id: "guobiao-premium", name: "高级款", price: 260, material: "不锈钢", finish: "拉丝银", image: "🔧" },
+    ]
+  },
+]
+
+// 执手样式数据（保留用于兼容）
 const handleStyles = [
   { id: "fork", name: "拨叉执手", icon: "🔧" },
   { id: "two-point", name: "两点锁执手", icon: "🔐" },
@@ -497,6 +542,7 @@ export default function WindowTypeDesigner({
   const [selectedType, setSelectedType] = useState<typeof windowTypeOptions[0] | null>(preselectedType)
   const [selectedPane, setSelectedPane] = useState<number | null>(null)
   const [selectedHandle, setSelectedHandle] = useState(false) // 是否选中执手
+  const [showHandlePanel, setShowHandlePanel] = useState(false) // 显示执手选择面板
   const [canvasWidth, setCanvasWidth] = useState(initialWidth)
   const [canvasHeight, setCanvasHeight] = useState(initialHeight)
   const [zoom, setZoom] = useState(1) // 画布缩放比例
@@ -528,6 +574,7 @@ export default function WindowTypeDesigner({
     guardrailHeight?: number
     // 执手配置
     handleHeight?: number
+    handleBrand?: string
     handleStyle?: string
   }>>([])
 
@@ -1015,54 +1062,371 @@ export default function WindowTypeDesigner({
 
   // 主设计界面
   return (
-    <div className="h-full flex flex-col bg-background">
-      {/* 顶部工具栏 */}
-      <div className="flex-none p-3 border-b bg-card">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <div className="h-full flex flex-col lg:flex-row gap-4 bg-background">
+      {/* 左侧配置面板 */}
+      <div className="w-full lg:w-96 flex-shrink-0">
+        <Card className="h-full max-h-[600px] lg:max-h-none flex flex-col overflow-hidden">
+          {showHandlePanel ? (
+            // 五金选择二级面板
+            <>
+              {/* 返回按钮 */}
+              <div className="flex-none px-3 pt-3 pb-2 bg-background/95 backdrop-blur">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowHandlePanel(false)}
+                  className="gap-2 text-xs"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  返回区域配置
+                </Button>
+              </div>
+
+              {/* 执手选择内容 */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="px-3 pb-3 space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground px-1">
+                    选择执手品牌和款式
+                  </div>
+                  {handleBrands.map((brand) => (
+                    <div key={brand.id} className="space-y-1.5">
+                      <div className="text-xs font-semibold text-muted-foreground px-1">
+                        {brand.name} ({brand.origin})
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {brand.styles.map((style) => (
+                          <button
+                            key={style.id}
+                            onClick={() => {
+                              if (selectedUnit !== null) {
+                                setUnits(prev => prev.map((u, i) => 
+                                  i === selectedUnit 
+                                    ? { ...u, handleBrand: brand.id, handleStyle: style.id }
+                                    : u
+                                ))
+                                setShowHandlePanel(false)
+                              }
+                            }}
+                            className={cn(
+                              "p-2 rounded-lg border-2 transition-all text-left relative",
+                              selectedUnit !== null && units[selectedUnit]?.handleStyle === style.id
+                                ? "border-primary bg-primary/5 shadow-sm"
+                                : "border-gray-200 hover:border-gray-300 bg-muted/20"
+                            )}
+                          >
+                            {/* 图片区域 */}
+                            <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded mb-1.5 flex items-center justify-center text-2xl">
+                              {style.image}
+                            </div>
+                            {/* 信息区域 */}
+                            <div className="space-y-0.5">
+                              <div className="font-medium text-xs truncate">{style.name}</div>
+                              <div className="text-[10px] text-muted-foreground truncate">
+                                {style.material}
+                              </div>
+                              <div className="text-xs font-semibold text-primary">
+                                ¥{style.price}
+                              </div>
+                            </div>
+                            {/* 选中标识 */}
+                            {selectedUnit !== null && units[selectedUnit]?.handleStyle === style.id && (
+                              <div className="absolute top-1 right-1">
+                                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                                  <Check className="w-3 h-3 text-white" />
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          ) : (
+            // 主配置面板
+            <>
+              {/* 标题 */}
+              <div className="flex-none px-3 pt-3 pb-2 bg-background/95 backdrop-blur">
+                <h3 className="text-sm font-semibold">区域配置</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  点击画布中的区域进行配置
+                </p>
+              </div>
+
+              {/* 配置内容 */}
+              <div className="flex-1 overflow-y-auto">
+                <div className="px-3 pb-3 space-y-2">
+            {selectedUnit !== null && units[selectedUnit] ? (
+              <div className="space-y-2">
+                {/* 当前区域信息 */}
+                <div className="p-2 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs font-semibold text-primary">
+                      区域 #{selectedUnit + 1}
+                    </div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {units[selectedUnit].width} × {units[selectedUnit].height}mm
+                    </div>
+                  </div>
+                </div>
+                
+                {/* 区域类型配置 */}
+                <div>
+                  <Label className="text-xs mb-1 block font-semibold">区域类型</Label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <Button
+                      variant={units[selectedUnit].type === 'fixed' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => configureUnitType(selectedUnit, 'fixed')}
+                      className="h-12 flex-col gap-1 text-xs"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>封窗</span>
+                    </Button>
+                    <Button
+                      variant={units[selectedUnit].type === 'openable' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => configureUnitType(selectedUnit, 'openable')}
+                      className="h-12 flex-col gap-1 text-xs"
+                    >
+                      <DoorOpen className="w-3.5 h-3.5" />
+                      <span>开启窗</span>
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* 开启窗配置 */}
+                {units[selectedUnit].type === 'openable' && (
+                  <>
+                    <div>
+                      <Label className="text-xs mb-1 block font-semibold">开启方式</Label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <Button
+                          variant={units[selectedUnit].openingType === 'casement' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningType(selectedUnit, 'casement')}
+                          className="text-xs h-7"
+                        >
+                          平开
+                        </Button>
+                        <Button
+                          variant={units[selectedUnit].openingType === 'sliding' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningType(selectedUnit, 'sliding')}
+                          className="text-xs h-7"
+                        >
+                          推拉
+                        </Button>
+                        <Button
+                          variant={units[selectedUnit].openingType === 'tilt' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningType(selectedUnit, 'tilt')}
+                          className="text-xs h-7"
+                        >
+                          内倒
+                        </Button>
+                        <Button
+                          variant={units[selectedUnit].openingType === 'fixed' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningType(selectedUnit, 'fixed')}
+                          className="text-xs h-7"
+                        >
+                          固定
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-xs mb-1 block font-semibold">开启方向</Label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <Button
+                          variant={units[selectedUnit].openingDirection === 'left' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningDirection(selectedUnit, 'left')}
+                          className="text-xs h-7"
+                        >
+                          ← 左开
+                        </Button>
+                        <Button
+                          variant={units[selectedUnit].openingDirection === 'right' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningDirection(selectedUnit, 'right')}
+                          className="text-xs h-7"
+                        >
+                          右开 →
+                        </Button>
+                        <Button
+                          variant={units[selectedUnit].openingDirection === 'top' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningDirection(selectedUnit, 'top')}
+                          className="text-xs h-7"
+                        >
+                          ↑ 上开
+                        </Button>
+                        <Button
+                          variant={units[selectedUnit].openingDirection === 'bottom' ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => configureOpeningDirection(selectedUnit, 'bottom')}
+                          className="text-xs h-7"
+                        >
+                          ↓ 下开
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* 五金配置 */}
+                    <div>
+                      <Label className="text-xs mb-1 block font-semibold">五金配置</Label>
+                      {units[selectedUnit].handleBrand && units[selectedUnit].handleStyle ? (
+                        <div className="p-2 bg-muted/20 rounded-lg border-2 border-primary/20">
+                          <div className="flex items-start gap-2 mb-1.5">
+                            {/* 图片预览 */}
+                            <div className="w-12 h-12 bg-gradient-to-br from-gray-100 to-gray-200 rounded flex items-center justify-center text-xl shrink-0">
+                              {handleBrands.find(b => b.id === units[selectedUnit].handleBrand)?.styles.find(s => s.id === units[selectedUnit].handleStyle)?.image}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-medium truncate">
+                                {handleBrands.find(b => b.id === units[selectedUnit].handleBrand)?.name}
+                              </div>
+                              <div className="text-xs font-semibold truncate">
+                                {handleBrands.find(b => b.id === units[selectedUnit].handleBrand)?.styles.find(s => s.id === units[selectedUnit].handleStyle)?.name}
+                              </div>
+                              <div className="text-[10px] text-muted-foreground truncate">
+                                {handleBrands.find(b => b.id === units[selectedUnit].handleBrand)?.styles.find(s => s.id === units[selectedUnit].handleStyle)?.material}
+                              </div>
+                            </div>
+                            <div className="text-xs font-semibold text-primary shrink-0">
+                              ¥{handleBrands.find(b => b.id === units[selectedUnit].handleBrand)?.styles.find(s => s.id === units[selectedUnit].handleStyle)?.price}
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowHandlePanel(true)}
+                            className="w-full text-xs h-6"
+                          >
+                            更换执手
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowHandlePanel(true)}
+                          className="w-full justify-between text-xs h-auto py-1.5"
+                        >
+                          <span>选择执手品牌和款式</span>
+                          <ChevronDown className="w-3.5 h-3.5 ml-2" />
+                        </Button>
+                      )}
+                    </div>
+                  </>
+                )}
+                
+                {/* 玻璃类型配置 */}
+                <div>
+                  <Label className="text-xs mb-1 block font-semibold">玻璃类型</Label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {glassTypes.map((glass) => (
+                      <Button
+                        key={glass.id}
+                        variant={units[selectedUnit].glassType === glass.id ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => configureGlassType(selectedUnit, glass.id as any)}
+                        className="h-auto py-1.5 text-xs flex-col items-start"
+                      >
+                        <div className="font-medium">{glass.name}</div>
+                        <div className="text-[10px] opacity-70">{glass.thickness}</div>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* 配件选项 */}
+                <div>
+                  <Label className="text-xs mb-1 block font-semibold">配件选项</Label>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <Button
+                      variant={units[selectedUnit].hasScreen ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleUnitAccessory(selectedUnit, 'screen')}
+                      className="h-auto py-2 flex-col gap-1 text-xs"
+                    >
+                      <Wind className="w-3.5 h-3.5" />
+                      <span>纱窗</span>
+                      {units[selectedUnit].hasScreen && <Check className="w-3 h-3" />}
+                    </Button>
+                    
+                    <Button
+                      variant={units[selectedUnit].hasGrille ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleUnitAccessory(selectedUnit, 'grille')}
+                      className="h-auto py-2 flex-col gap-1 text-xs"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                      <span>格栅</span>
+                      {units[selectedUnit].hasGrille && <Check className="w-3 h-3" />}
+                    </Button>
+                    
+                    <Button
+                      variant={units[selectedUnit].hasGuardrail ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleUnitAccessory(selectedUnit, 'guardrail')}
+                      className="h-auto py-2 flex-col gap-1 text-xs"
+                    >
+                      <Grip className="w-3.5 h-3.5" />
+                      <span>护栏</span>
+                      {units[selectedUnit].hasGuardrail && <Check className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-6 text-xs text-muted-foreground">
+                点击画布中的区域进行配置
+              </div>
+            )}
+                </div>
+              </div>
+            </>
+          )}
+        </Card>
+      </div>
+
+      {/* 右侧画布区域 */}
+      <div className="flex-1 min-h-[500px] lg:min-h-0">
+        <Card className="h-full p-0 overflow-hidden relative">
+          {/* 悬浮工具栏 - 左侧 */}
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-2 bg-white/95 backdrop-blur rounded-lg shadow-lg p-2 border">
             <Button
-              variant="outline"
+              variant={addMullionMode === 'vertical' ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setShowTypeSelector(true)}
-              className="gap-2"
+              onClick={() => setAddMullionMode(addMullionMode === 'vertical' ? null : 'vertical')}
+              className="h-9 w-9 p-0"
+              title="添加竖梃"
             >
-              <Grid3x3 className="w-4 h-4" />
-              <span className="hidden sm:inline">切换窗型</span>
+              <div className="flex flex-col items-center text-xs">
+                <span className="text-base">|</span>
+              </div>
             </Button>
-            
-            {/* 添加梃按钮组 */}
-            <div className="flex items-center gap-1 border rounded-lg p-1">
-              <Button
-                variant={addMullionMode === 'vertical' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setAddMullionMode(addMullionMode === 'vertical' ? null : 'vertical')}
-                className="h-7 px-2 text-xs"
-                title="添加垂直梃"
-              >
-                ➕ 竖梃
-              </Button>
-              <Button
-                variant={addMullionMode === 'horizontal' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setAddMullionMode(addMullionMode === 'horizontal' ? null : 'horizontal')}
-                className="h-7 px-2 text-xs"
-                title="添加水平梃"
-              >
-                ➕ 横梃
-              </Button>
-            </div>
-            
-            <div className="hidden md:block text-sm">
-              <span className="text-muted-foreground">当前窗型：</span>
-              <span className="font-semibold ml-1">{selectedType?.name}</span>
-            </div>
+            <Button
+              variant={addMullionMode === 'horizontal' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setAddMullionMode(addMullionMode === 'horizontal' ? null : 'horizontal')}
+              className="h-9 w-9 p-0"
+              title="添加横梃"
+            >
+              <div className="flex flex-col items-center text-xs">
+                <span className="text-base">—</span>
+              </div>
+            </Button>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="outline" className="gap-2">
-              <span className="text-xs">外框尺寸:</span>
-              <span className="font-mono font-bold text-blue-600">{canvasWidth}×{canvasHeight}mm</span>
-            </Badge>
-            <div className="flex items-center gap-1 border rounded-lg p-1">
+
+          {/* 缩放比例 - 右下角 */}
+          <div className="absolute right-4 bottom-4 z-50 bg-white/95 backdrop-blur rounded-lg shadow-lg p-2 border">
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
                 size="sm"
@@ -1070,7 +1434,7 @@ export default function WindowTypeDesigner({
                 className="h-7 w-7 p-0"
                 title="缩小"
               >
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="w-3.5 h-3.5" />
               </Button>
               <span className="text-xs font-mono min-w-[3rem] text-center">
                 {Math.round(zoom * 100)}%
@@ -1082,225 +1446,26 @@ export default function WindowTypeDesigner({
                 className="h-7 w-7 p-0"
                 title="放大"
               >
-                <ZoomIn className="w-4 h-4" />
+                <ZoomIn className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
-        </div>
-        
-        {/* 添加梃模式提示 */}
-        {addMullionMode && (
-          <div className="mt-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
-            💡 {addMullionMode === 'vertical' ? '点击画布添加垂直梃' : '点击画布添加水平梃'}，点击任意梃可删除
-          </div>
-        )}
-      </div>
 
-      {/* 主工作区 - 左右布局 */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* 左侧：区域配置面板 */}
-        <div className="w-80 flex-none border-r bg-card flex flex-col overflow-auto">
-          <div className="p-4">
-            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-              <Grid3x3 className="w-4 h-4" />
-              区域配置
-            </h3>
-            
-            {selectedUnit !== null && units[selectedUnit] ? (
-              <div className="space-y-4">
-                {/* 当前区域信息 */}
-                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <div className="text-xs font-semibold text-blue-900 mb-2">
-                    区域 #{selectedUnit + 1}
-                  </div>
-                  <div className="space-y-1 text-xs text-blue-700">
-                    <div>尺寸: {units[selectedUnit].width} × {units[selectedUnit].height}mm</div>
-                    <div>位置: x={units[selectedUnit].x}, y={units[selectedUnit].y}</div>
-                  </div>
-                </div>
-                
-                {/* 区域类型配置 */}
-                <div>
-                  <Label className="text-xs mb-2 block font-semibold">区域类型 *</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      variant={units[selectedUnit].type === 'fixed' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => configureUnitType(selectedUnit, 'fixed')}
-                      className="h-16 flex-col gap-1"
-                    >
-                      <Lock className="w-5 h-5" />
-                      <span className="text-xs">封窗</span>
-                    </Button>
-                    <Button
-                      variant={units[selectedUnit].type === 'openable' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => configureUnitType(selectedUnit, 'openable')}
-                      className="h-16 flex-col gap-1"
-                    >
-                      <DoorOpen className="w-5 h-5" />
-                      <span className="text-xs">开启窗</span>
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* 开启窗配置 */}
-                {units[selectedUnit].type === 'openable' && (
-                  <>
-                    <div>
-                      <Label className="text-xs mb-2 block font-semibold">开启方式</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant={units[selectedUnit].openingType === 'casement' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningType(selectedUnit, 'casement')}
-                          className="text-xs"
-                        >
-                          平开
-                        </Button>
-                        <Button
-                          variant={units[selectedUnit].openingType === 'sliding' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningType(selectedUnit, 'sliding')}
-                          className="text-xs"
-                        >
-                          推拉
-                        </Button>
-                        <Button
-                          variant={units[selectedUnit].openingType === 'tilt' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningType(selectedUnit, 'tilt')}
-                          className="text-xs"
-                        >
-                          内倒
-                        </Button>
-                        <Button
-                          variant={units[selectedUnit].openingType === 'fixed' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningType(selectedUnit, 'fixed')}
-                          className="text-xs"
-                        >
-                          固定
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-xs mb-2 block font-semibold">开启方向</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant={units[selectedUnit].openingDirection === 'left' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningDirection(selectedUnit, 'left')}
-                          className="text-xs"
-                        >
-                          ← 左开
-                        </Button>
-                        <Button
-                          variant={units[selectedUnit].openingDirection === 'right' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningDirection(selectedUnit, 'right')}
-                          className="text-xs"
-                        >
-                          右开 →
-                        </Button>
-                        <Button
-                          variant={units[selectedUnit].openingDirection === 'top' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningDirection(selectedUnit, 'top')}
-                          className="text-xs"
-                        >
-                          ↑ 上开
-                        </Button>
-                        <Button
-                          variant={units[selectedUnit].openingDirection === 'bottom' ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => configureOpeningDirection(selectedUnit, 'bottom')}
-                          className="text-xs"
-                        >
-                          ↓ 下开
-                        </Button>
-                      </div>
-                    </div>
-                  </>
-                )}
-                
-                {/* 玻璃类型配置 */}
-                <div>
-                  <Label className="text-xs mb-2 block font-semibold">玻璃类型</Label>
-                  <div className="space-y-1">
-                    {glassTypes.map((glass) => (
-                      <Button
-                        key={glass.id}
-                        variant={units[selectedUnit].glassType === glass.id ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => configureGlassType(selectedUnit, glass.id as any)}
-                        className="w-full justify-start text-xs h-auto py-2"
-                      >
-                        <div className="flex-1 text-left">
-                          <div className="font-semibold">{glass.name}</div>
-                          <div className="text-[10px] opacity-70">{glass.thickness}</div>
-                        </div>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* 配件选项 */}
-                <div>
-                  <Label className="text-xs mb-2 block font-semibold">配件选项</Label>
-                  <div className="space-y-2">
-                    <Button
-                      variant={units[selectedUnit].hasScreen ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleUnitAccessory(selectedUnit, 'screen')}
-                      className="w-full justify-start text-xs"
-                    >
-                      <Wind className="w-4 h-4 mr-2" />
-                      纱窗
-                      {units[selectedUnit].hasScreen && <Check className="w-4 h-4 ml-auto" />}
-                    </Button>
-                    
-                    <Button
-                      variant={units[selectedUnit].hasGrille ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleUnitAccessory(selectedUnit, 'grille')}
-                      className="w-full justify-start text-xs"
-                    >
-                      <LayoutGrid className="w-4 h-4 mr-2" />
-                      格栅
-                      {units[selectedUnit].hasGrille && <Check className="w-4 h-4 ml-auto" />}
-                    </Button>
-                    
-                    <Button
-                      variant={units[selectedUnit].hasGuardrail ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleUnitAccessory(selectedUnit, 'guardrail')}
-                      className="w-full justify-start text-xs"
-                    >
-                      <Grip className="w-4 h-4 mr-2" />
-                      护栏
-                      {units[selectedUnit].hasGuardrail && <Check className="w-4 h-4 ml-auto" />}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-sm text-muted-foreground">
-                点击画布中的区域进行配置
-              </div>
-            )}
-          </div>
-        </div>
-        {/* 右侧：2D画布 */}
-        <div 
-          className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 to-gray-100 p-8"
-          onWheel={handleWheel}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          <div className="max-w-5xl mx-auto">
+          {/* 添加梃模式提示 */}
+          {addMullionMode && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900 shadow-lg">
+              💡 {addMullionMode === 'vertical' ? '点击画布添加竖梃' : '点击画布添加横梃'}，点击任意梃可删除
+            </div>
+          )}
+
+          <div 
+            className="h-full w-full bg-gradient-to-b from-sky-100 to-white overflow-auto p-8"
+            onWheel={handleWheel}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
+            <div className="max-w-5xl mx-auto flex items-center justify-center min-h-full">
             {/* 画布容器 */}
             <div className="bg-white rounded-xl shadow-2xl p-12 border-4 border-gray-300">
               <div
@@ -1522,6 +1687,7 @@ export default function WindowTypeDesigner({
             </div>
           </div>
         </div>
+        </Card>
       </div>
     </div>
   )

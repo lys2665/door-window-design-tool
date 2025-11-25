@@ -1,156 +1,195 @@
 import Link from "next/link"
-import { Pen, BookOpen, Package, GraduationCap, Sparkles, FolderOpen } from "lucide-react"
+import { Pen, BookOpen, Package, Sparkles, FolderOpen, Home, ArrowUpRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function HomePage() {
   return (
-    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      {/* Header - 优化高度 */}
-      <header className="bg-white border-b shrink-0 shadow-sm">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8 py-2.5 md:py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-              <Pen className="w-5 h-5 text-white" />
+    <div className="min-h-screen bg-background dark:bg-[#2a2a2a] flex overflow-hidden relative transition-colors">
+      {/* 背景光效 */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[10%] w-[600px] h-[600px] bg-blue-500/20 dark:bg-blue-500/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[15%] w-[500px] h-[500px] bg-purple-500/15 dark:bg-purple-500/15 rounded-full blur-[100px]" />
+      </div>
+
+      {/* 背景大字 */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+        <p className="text-[clamp(120px,20vw,300px)] font-bold text-foreground/[0.02] dark:text-white/[0.02] whitespace-nowrap leading-none select-none">
+          门窗设计
+        </p>
+      </div>
+
+      {/* 主内容区 - 全宽 */}
+      <main className="flex-1 flex flex-col relative z-10">
+        {/* 顶部栏 - 优化pad尺寸 */}
+        <header className="h-16 md:h-18 flex items-center justify-between px-6 md:px-10 lg:px-12 flex-shrink-0">
+          {/* Logo区域 */}
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center transform rotate-45">
+              <Pen className="w-4 h-4 md:w-5 md:h-5 text-white -rotate-45" />
             </div>
-            <div className="leading-tight">
-              <h1 className="text-base md:text-lg font-bold text-gray-900">门窗设计工具</h1>
-              <p className="text-[10px] md:text-xs text-gray-500">专业 · 高效 · 智能</p>
+            <div className="hidden sm:flex flex-col">
+              <h1 className="text-base md:text-lg font-bold text-foreground dark:text-white">门窗智能设计平台</h1>
+              <span className="text-xs text-muted-foreground dark:text-white/50">专业 · 高效 · 智能</span>
             </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <Link href="/learning" className="text-gray-600 hover:text-gray-900 text-sm font-medium hidden sm:block transition-colors duration-200">
+          </Link>
+          
+          {/* 右侧操作区 */}
+          <div className="flex items-center gap-2 md:gap-3">
+            <Button 
+              variant="ghost" 
+              className="text-foreground/80 dark:text-white/80 hover:text-foreground dark:hover:text-white hover:bg-accent dark:hover:bg-white/10 text-sm h-9 px-3 md:px-4"
+            >
               学习中心
-            </Link>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-5 md:px-6 text-sm h-9 transition-all duration-200 active:scale-95">
+            </Button>
+            <ThemeToggle />
+            <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full px-4 md:px-6 text-sm h-9">
               登录账户
             </Button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Hero Section */}
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8 h-full flex flex-col">
-          {/* Title */}
-          <div className="text-center pt-6 md:pt-8 lg:pt-10 pb-5 md:pb-6 lg:pb-8 shrink-0">
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-blue-600 mb-3 md:mb-4">
-              专业门窗设计平台
-            </h2>
-            <p className="text-base md:text-lg lg:text-xl text-gray-600">
-              集设计、选品、学习、AI智能建议于一体的综合解决方案
-            </p>
-          </div>
-
-          {/* Main Grid - 横屏: 左边大卡片+右边2x2网格，竖屏: 上下布局 */}
-          <div className="flex-1 flex portrait:flex-col landscape:flex-row gap-4 md:gap-5 lg:gap-6 pb-6 md:pb-8 min-h-0">
-            {/* Left Column - Design Card */}
-            <div className="portrait:flex-none portrait:h-[45%] landscape:flex-1">
-              <Link href="/design" className="block h-full">
-                <div className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-blue-700 to-cyan-600 p-8 md:p-10 lg:p-12 h-full cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98]">
-                  {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-20">
-                    <div className="absolute inset-0" style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.15'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v6h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                    }} />
+        {/* 卡片网格区域 - 优化pad布局 */}
+        <div className="flex-1 overflow-auto px-6 md:px-10 lg:px-12 py-6 md:py-8">
+          <div className="max-w-[1400px] mx-auto h-full flex flex-col gap-4 md:gap-6">
+            {/* 第一行：大卡片 + 中卡片 */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 flex-[2]">
+              {/* 开始设计 - 大卡片 (占2列) */}
+              <Link href="/design" className="lg:col-span-2">
+                <div className="group h-full min-h-[280px] lg:min-h-[360px] backdrop-blur-xl bg-gradient-to-b from-card/80 to-card/60 dark:from-white/10 dark:to-white/5 rounded-2xl md:rounded-3xl border border-border dark:border-white/20 hover:border-primary dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
+                  {/* 背景装饰图案 */}
+                  <div className="absolute inset-0 opacity-40">
+                    <div className="absolute right-4 md:right-8 bottom-4 md:bottom-8 w-32 h-48 md:w-48 md:h-72 opacity-30">
+                      <div className="w-full h-full border-2 md:border-4 border-primary/40 dark:border-white/40 rounded-xl md:rounded-2xl relative bg-primary/5 dark:bg-white/5">
+                        <div className="absolute inset-2 md:inset-4 border border-primary/30 dark:border-white/30 rounded-lg" />
+                        <div className="absolute left-1/2 top-0 bottom-0 w-[1px] md:w-[2px] bg-primary/30 dark:bg-white/30 -translate-x-1/2" />
+                        <div className="absolute top-1/2 left-0 right-0 h-[1px] md:h-[2px] bg-primary/30 dark:bg-white/30 -translate-y-1/2" />
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Door/Window Illustration - 更精确的门窗图形 */}
-                  <div className="absolute right-8 bottom-8 md:right-12 md:bottom-12 lg:right-16 lg:bottom-16 w-48 h-72 md:w-56 md:h-80 lg:w-64 lg:h-96 opacity-30">
-                    <div className="w-full h-full border-[6px] md:border-8 border-white/40 rounded-2xl relative bg-white/5">
-                      {/* 内框 */}
-                      <div className="absolute inset-4 md:inset-6 border-[4px] md:border-[6px] border-white/30 rounded-lg" />
-                      {/* 十字分隔 */}
-                      <div className="absolute left-1/2 top-0 bottom-0 w-[4px] md:w-[6px] bg-white/30 -translate-x-1/2" />
-                      <div className="absolute top-1/2 left-0 right-0 h-[4px] md:h-[6px] bg-white/30 -translate-y-1/2" />
+                  {/* 内容 */}
+                  <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
+                    <div className="flex-1 flex flex-col justify-center">
+                      <h2 className="text-2xl md:text-3xl font-bold text-foreground dark:text-white mb-3 md:mb-4">开始设计</h2>
+                      <p className="text-muted-foreground dark:text-white/70 text-sm md:text-base mb-4 md:mb-6">
+                        使用专业工具快速<br />设计您的门窗方案
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-primary/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-primary/20 dark:group-hover:bg-white/20 transition-colors">
+                        <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              {/* AI封窗建议 - 中卡片 (占1列) */}
+              <Link href="/ai" className="lg:col-span-1">
+                <div className="group h-full min-h-[280px] lg:min-h-[360px] backdrop-blur-xl bg-gradient-to-b from-blue-500/30 to-blue-600/20 rounded-2xl md:rounded-3xl border border-blue-400/30 hover:border-blue-400/50 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
+                  {/* 装饰性图案 */}
+                  <div className="absolute inset-0">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 md:w-40 md:h-40 opacity-20">
+                      <Sparkles className="w-full h-full text-white dark:text-white" />
                     </div>
                   </div>
 
-                  {/* Content */}
-                  <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                      <Pen className="w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 text-white" />
+                  {/* 内容 */}
+                  <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
+                    <div className="flex-1 flex flex-col justify-center">
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">AI 封窗建议</h2>
+                      <p className="text-white/80 text-xs md:text-sm mb-4 md:mb-6">
+                        获取智能化的封窗解决方案，AI助力精准决策
+                      </p>
                     </div>
+                    
+                    <div className="flex justify-end">
+                      <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                        <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* 第二行：三个小卡片 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 flex-1">
+              {/* 案例库 - 小卡片 */}
+              <Link href="/cases">
+                <div className="group h-full min-h-[180px] lg:min-h-[200px] backdrop-blur-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-2xl md:rounded-3xl border border-border/50 dark:border-white/20 hover:border-purple-400/50 dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
+                  <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-between">
                     <div>
-                      <h3 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-3 md:mb-4">开始设计</h3>
-                      <p className="text-lg md:text-xl lg:text-2xl text-white/90">使用专业工具快速设计您的门窗方案</p>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">案例库</h3>
+                      <p className="text-muted-foreground dark:text-white/70 text-xs md:text-sm">
+                        浏览精选的门窗设计案例
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-purple-500/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-purple-500/20 dark:group-hover:bg-white/20 transition-colors">
+                        <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              {/* 产品库 - 小卡片 */}
+              <Link href="/products">
+                <div className="group h-full min-h-[180px] lg:min-h-[200px] backdrop-blur-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-2xl md:rounded-3xl border border-border/50 dark:border-white/20 hover:border-emerald-400/50 dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
+                  <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">产品库</h3>
+                      <p className="text-muted-foreground dark:text-white/70 text-xs md:text-sm">
+                        探索完整的门窗产品目录
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-emerald-500/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-emerald-500/20 dark:group-hover:bg-white/20 transition-colors">
+                        <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+
+              {/* 我的方案 - 小卡片 */}
+              <Link href="/schemes" className="sm:col-span-2 lg:col-span-1">
+                <div className="group h-full min-h-[180px] lg:min-h-[200px] backdrop-blur-xl bg-gradient-to-r from-orange-500/20 to-amber-500/10 rounded-2xl md:rounded-3xl border border-border/50 dark:border-white/20 hover:border-orange-400/50 dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
+                  <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">我的方案</h3>
+                      <p className="text-muted-foreground dark:text-white/70 text-xs md:text-sm">
+                        管理和查看您的门窗设计方案
+                      </p>
+                    </div>
+                    
+                    <div className="flex justify-end">
+                      <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-orange-500/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-orange-500/20 dark:group-hover:bg-white/20 transition-colors">
+                        <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </Link>
             </div>
-
-            {/* Right Column - Feature Cards 2x2 Grid */}
-            <div className="portrait:flex-1 landscape:w-[48%] landscape:max-w-[650px] grid grid-cols-2 grid-rows-2 gap-4 md:gap-5 lg:gap-6 min-h-0">
-              {/* Case Library */}
-              <Link href="/cases" className="h-full min-h-0">
-                <div className="group bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-8 hover:shadow-xl hover:bg-white transition-all duration-300 cursor-pointer border border-gray-200/50 hover:border-blue-300 hover:scale-[1.02] active:scale-[0.97] h-full flex flex-col">
-                  <div className="w-14 h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 rounded-2xl bg-blue-100 flex items-center justify-center mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300 shrink-0">
-                    <BookOpen className="w-7 h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2">案例库</h3>
-                  <p className="text-sm md:text-base text-gray-600 line-clamp-2">浏览精选的门窗设计案例</p>
-                </div>
-              </Link>
-
-              {/* Product Library */}
-              <Link href="/products" className="h-full min-h-0">
-                <div className="group bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-8 hover:shadow-xl hover:bg-white transition-all duration-300 cursor-pointer border border-gray-200/50 hover:border-blue-300 hover:scale-[1.02] active:scale-[0.97] h-full flex flex-col">
-                  <div className="w-14 h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 rounded-2xl bg-blue-100 flex items-center justify-center mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300 shrink-0">
-                    <Package className="w-7 h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2">产品库</h3>
-                  <p className="text-sm md:text-base text-gray-600 line-clamp-2">探索完整的门窗产品目录</p>
-                </div>
-              </Link>
-
-              {/* My Schemes */}
-              <Link href="/schemes" className="h-full min-h-0">
-                <div className="group bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-8 hover:shadow-xl hover:bg-white transition-all duration-300 cursor-pointer border border-gray-200/50 hover:border-blue-300 hover:scale-[1.02] active:scale-[0.97] h-full flex flex-col">
-                  <div className="w-14 h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 rounded-2xl bg-blue-100 flex items-center justify-center mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300 shrink-0">
-                    <FolderOpen className="w-7 h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2">我的方案</h3>
-                  <p className="text-sm md:text-base text-gray-600 line-clamp-2">管理和查看您的门窗设计方案</p>
-                </div>
-              </Link>
-
-              {/* AI Recommendations */}
-              <Link href="/ai" className="h-full min-h-0">
-                <div className="group bg-white/80 backdrop-blur-sm rounded-2xl md:rounded-3xl p-5 md:p-6 lg:p-8 hover:shadow-xl hover:bg-white transition-all duration-300 cursor-pointer border border-gray-200/50 hover:border-blue-300 hover:scale-[1.02] active:scale-[0.97] h-full flex flex-col">
-                  <div className="w-14 h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 rounded-2xl bg-blue-100 flex items-center justify-center mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300 shrink-0">
-                    <Sparkles className="w-7 h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 text-blue-600" />
-                  </div>
-                  <h3 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 mb-2">AI封窗建议</h3>
-                  <p className="text-sm md:text-base text-gray-600 line-clamp-2">获取智能化的封窗解决方案</p>
-                </div>
-              </Link>
-            </div>
           </div>
         </div>
+
+        {/* 底部信息 */}
+        <footer className="h-12 md:h-14 flex items-center justify-center px-6 md:px-10 flex-shrink-0 border-t border-border/50 dark:border-white/5">
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-xs text-muted-foreground dark:text-white/40">
+            <span>© 2024 门窗智能设计平台</span>
+            <Link href="/help" className="hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation">帮助中心</Link>
+            <Link href="/privacy" className="hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation">隐私政策</Link>
+            <Link href="/terms" className="hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation">服务条款</Link>
+          </div>
+        </footer>
       </main>
-
-      {/* Footer - 优化高度 */}
-      <footer className="bg-white border-t shrink-0">
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 lg:px-8 py-2.5 md:py-3">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p className="text-xs text-gray-500">© 2024 门窗设计工具. 保留所有权利.</p>
-            <div className="flex items-center gap-4 md:gap-5">
-              <Link href="/help" className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
-                帮助中心
-              </Link>
-              <Link href="/privacy" className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
-                隐私政策
-              </Link>
-              <Link href="/terms" className="text-xs text-gray-500 hover:text-gray-900 transition-colors">
-                服务条款
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
-
-
-

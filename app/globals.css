@@ -133,19 +133,33 @@
     -webkit-text-size-adjust: 100%;
     -moz-text-size-adjust: 100%;
     text-size-adjust: 100%;
+    /* 优化触摸滚动性能 */
+    touch-action: manipulation;
   }
   
-  /* 优化按钮和链接的触摸目标大小 */
+  /* 优化按钮和链接的触摸目标大小（pad/触控设备） */
   button,
   a,
   [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 36px;
+    min-width: 36px;
+  }
+  
+  /* pad尺寸优化：更大的触摸目标 */
+  @media (min-width: 768px) and (max-width: 1366px) {
+    button,
+    a,
+    [role="button"] {
+      min-height: 40px;
+      min-width: 40px;
+    }
   }
   
   /* 移除移动设备上的点击高亮 */
   * {
     -webkit-tap-highlight-color: transparent;
+    /* 优化触控响应 */
+    touch-action: manipulation;
   }
   
   /* 优化图片加载 */
@@ -180,13 +194,48 @@
   .scroll-container::-webkit-scrollbar {
     display: none;
   }
+  
+  /* 优化触控交互类 */
+  .touch-manipulation {
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+  }
 }
 
-/* iPad 横屏专用优化 */
-@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+/* iPad/Pad 设备优化 (1280x800 及类似尺寸) */
+@media (min-width: 768px) and (max-width: 1366px) {
   :root {
-    /* 针对 iPad 横屏调整基础字号 */
+    /* 针对 pad 设备调整基础字号 */
     font-size: 15px;
+  }
+  
+  /* 优化触控热区 */
+  button,
+  a,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+  }
+  
+  /* 优化间距 */
+  .gap-1 { gap: 0.375rem; }
+  .gap-2 { gap: 0.625rem; }
+  .gap-3 { gap: 0.875rem; }
+  .gap-4 { gap: 1.125rem; }
+}
+
+/* iPad 横屏专用优化 (1280x800主要场景) */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+  :root {
+    font-size: 15px;
+  }
+  
+  /* 针对1280x800优化容器最大宽度 */
+  .container {
+    max-width: 1240px;
   }
 }
 
@@ -194,13 +243,6 @@
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
   :root {
     font-size: 14px;
-  }
-}
-
-/* iPad Pro 12.9 竖屏优化 */
-@media (min-width: 1024px) and (max-width: 1366px) and (orientation: portrait) {
-  :root {
-    font-size: 15px;
   }
 }
 

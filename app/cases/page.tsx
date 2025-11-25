@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // 模拟数据
 const mockCases = [
@@ -190,19 +191,22 @@ export default function CasesPage() {
     })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* 面包屑导航 */}
-      <div className="bg-white border-b">
+      <div className="bg-card border-b border-border">
         <div className="max-w-[1600px] mx-auto px-8 py-4">
-          <div className="flex items-center gap-3 mb-1">
-            <Link href="/">
-              <Button variant="ghost" size="sm" className="gap-1.5 h-8 px-2 -ml-2 text-muted-foreground hover:text-foreground transition-colors duration-200">
-                <Home className="h-3.5 w-3.5" />
-                <span className="text-xs">首页</span>
-              </Button>
-            </Link>
-            <span className="text-gray-300">/</span>
-            <span className="text-sm font-medium text-foreground">案例库</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="gap-1.5 h-10 px-3 -ml-2 text-muted-foreground hover:text-foreground transition-colors duration-200 touch-manipulation">
+                  <Home className="h-4 w-4" />
+                  <span className="text-sm">首页</span>
+                </Button>
+              </Link>
+              <span className="text-muted-foreground">/</span>
+              <span className="text-sm font-medium text-foreground">案例库</span>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </div>
