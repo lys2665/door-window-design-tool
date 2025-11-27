@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
+import { useState } from "react";
+import Link from "next/link";
 import {
   ArrowLeft,
   Upload,
@@ -12,22 +12,32 @@ import {
   FileText,
   Eye,
   Download,
-} from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // 设计流程的四个阶段
 const designStages = [
-  { id: 1, name: "基础选型", description: "户型信息与智能推荐", icon: Sparkles },
+  {
+    id: 1,
+    name: "基础选型",
+    description: "户型信息与智能推荐",
+    icon: Sparkles,
+  },
   { id: 2, name: "窗型设计", description: "结构设计与开启位", icon: FileText },
   { id: 3, name: "配置选择", description: "材质与参数设置", icon: Eye },
   { id: 4, name: "成果输出", description: "报价单与效果图", icon: Download },
-]
+];
 
 // 系列数据
 const seriesOptions = [
@@ -61,11 +71,11 @@ const seriesOptions = [
     budgetRange: "2000-4000元/㎡",
     features: ["经济实用", "性价比高"],
   },
-]
+];
 
 export default function DesignPage() {
-  const [currentStage, setCurrentStage] = useState(1)
-  const [showUploadDialog, setShowUploadDialog] = useState(false)
+  const [currentStage, setCurrentStage] = useState(1);
+  const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [designData, setDesignData] = useState({
     width: "",
     height: "",
@@ -77,25 +87,25 @@ export default function DesignPage() {
     selectedSeries: "series-1",
     series: "断桥铝80系列",
     windowType: "推拉窗",
-  })
+  });
 
   const updateData = (field: string, value: any) => {
-    setDesignData(prev => ({ ...prev, [field]: value }))
-  }
+    setDesignData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const nextStage = () => {
     if (currentStage < designStages.length) {
-      setCurrentStage(currentStage + 1)
+      setCurrentStage(currentStage + 1);
     }
-  }
+  };
 
   const prevStage = () => {
     if (currentStage > 1) {
-      setCurrentStage(currentStage - 1)
+      setCurrentStage(currentStage - 1);
     }
-  }
+  };
 
-  const progress = (currentStage / designStages.length) * 100
+  const progress = (currentStage / designStages.length) * 100;
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
@@ -108,13 +118,15 @@ export default function DesignPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-sm md:text-base font-semibold text-foreground">门窗智能设计平台</h1>
+            <h1 className="text-sm md:text-base font-semibold text-foreground">
+              门窗智能设计平台
+            </h1>
             <p className="text-[10px] md:text-xs text-muted-foreground">
               {designStages[currentStage - 1]?.name}
             </p>
           </div>
         </div>
-        
+
         {/* Steps and Navigation */}
         <div className="flex items-center gap-3">
           {/* Progress Steps */}
@@ -127,19 +139,27 @@ export default function DesignPage() {
                     currentStage > stage.id
                       ? "bg-primary text-primary-foreground"
                       : currentStage === stage.id
-                        ? "bg-primary/20 text-primary border-2 border-primary"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                      ? "bg-primary/20 text-primary border-2 border-primary"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
                 >
-                  {currentStage > stage.id ? <Check className="h-3.5 w-3.5" /> : index + 1}
+                  {currentStage > stage.id ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    index + 1
+                  )}
                 </button>
                 {index < designStages.length - 1 && (
-                  <div className={`w-8 h-px mx-1 ${currentStage > stage.id ? 'bg-primary' : 'bg-border'}`} />
+                  <div
+                    className={`w-8 h-px mx-1 ${
+                      currentStage > stage.id ? "bg-primary" : "bg-border"
+                    }`}
+                  />
                 )}
               </div>
             ))}
           </div>
-          
+
           {/* Navigation Buttons */}
           <div className="flex items-center gap-2">
             <Button
@@ -154,7 +174,9 @@ export default function DesignPage() {
             </Button>
             <Button
               size="sm"
-              onClick={currentStage < designStages.length ? nextStage : undefined}
+              onClick={
+                currentStage < designStages.length ? nextStage : undefined
+              }
               className="gap-1.5 h-8"
             >
               <span className="hidden sm:inline text-xs">
@@ -186,11 +208,13 @@ export default function DesignPage() {
                       <Sparkles className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-white">AI智能识别</h3>
+                      <h3 className="text-base font-bold text-white">
+                        AI智能识别
+                      </h3>
                       <p className="text-xs text-white/80">秒速识别门窗尺寸</p>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     variant="secondary"
                     className="gap-2 bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm"
                     onClick={() => setShowUploadDialog(true)}
@@ -204,11 +228,13 @@ export default function DesignPage() {
               {/* 窗型信息 */}
               <Card className="p-4">
                 <h3 className="text-sm font-semibold mb-3">窗型信息</h3>
-                
+
                 {/* 尺寸输入 - 优先展示 */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div>
-                    <Label htmlFor="width" className="text-sm mb-2 block">宽度 (mm)</Label>
+                    <Label htmlFor="width" className="text-sm mb-2 block">
+                      宽度 (mm)
+                    </Label>
                     <Input
                       id="width"
                       type="number"
@@ -220,7 +246,9 @@ export default function DesignPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="height" className="text-sm mb-2 block">高度 (mm)</Label>
+                    <Label htmlFor="height" className="text-sm mb-2 block">
+                      高度 (mm)
+                    </Label>
                     <Input
                       id="height"
                       type="number"
@@ -237,7 +265,14 @@ export default function DesignPage() {
                 <div className="mb-4">
                   <Label className="text-sm mb-2 block">房屋类型</Label>
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {["公寓", "别墅", "办公楼", "商业", "高层住宅", "联排别墅"].map((type) => (
+                    {[
+                      "公寓",
+                      "别墅",
+                      "办公楼",
+                      "商业",
+                      "高层住宅",
+                      "联排别墅",
+                    ].map((type) => (
                       <button
                         key={type}
                         onClick={() => updateData("houseType", type)}
@@ -257,7 +292,16 @@ export default function DesignPage() {
                 <div className="mb-4">
                   <Label className="text-sm mb-2 block">安装位置</Label>
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {["客厅", "卧室", "书房", "厨房", "阳台", "卫生间", "储藏室", "其他"].map((loc) => (
+                    {[
+                      "客厅",
+                      "卧室",
+                      "书房",
+                      "厨房",
+                      "阳台",
+                      "卫生间",
+                      "储藏室",
+                      "其他",
+                    ].map((loc) => (
                       <button
                         key={loc}
                         onClick={() => updateData("location", loc)}
@@ -277,7 +321,12 @@ export default function DesignPage() {
                 <div>
                   <Label className="text-sm mb-2 block">楼层高度</Label>
                   <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                    {["低层(1-6层)", "中层(7-12层)", "高层(13-20层)", "超高层(20层+)"].map((floor) => (
+                    {[
+                      "低层(1-6层)",
+                      "中层(7-12层)",
+                      "高层(13-20层)",
+                      "超高层(20层+)",
+                    ].map((floor) => (
                       <button
                         key={floor}
                         onClick={() => updateData("floor", floor)}
@@ -305,7 +354,9 @@ export default function DesignPage() {
 
                 {/* 预算快选 */}
                 <div className="mb-4">
-                  <Label className="text-xs mb-2 block text-muted-foreground">预算范围</Label>
+                  <Label className="text-xs mb-2 block text-muted-foreground">
+                    预算范围
+                  </Label>
                   <div className="grid grid-cols-3 gap-2">
                     {["30000", "50000", "100000"].map((budget) => (
                       <button
@@ -329,9 +380,9 @@ export default function DesignPage() {
                     <button
                       key={series.id}
                       onClick={() => {
-                        updateData("selectedSeries", series.id)
-                        updateData("series", series.name)
-                        updateData("windowType", series.windowType)
+                        updateData("selectedSeries", series.id);
+                        updateData("series", series.name);
+                        updateData("windowType", series.windowType);
                       }}
                       className={`w-full text-left rounded-xl overflow-hidden border-2 transition-all ${
                         designData.selectedSeries === series.id
@@ -341,8 +392,8 @@ export default function DesignPage() {
                     >
                       {/* 效果图 */}
                       <div className="aspect-[16/9] bg-muted relative">
-                        <img 
-                          src="/modern-aluminum-sliding-window.jpg" 
+                        <img
+                          src="/modern-aluminum-sliding-window.jpg"
                           alt={series.name}
                           className="w-full h-full object-cover"
                         />
@@ -354,11 +405,19 @@ export default function DesignPage() {
                       </div>
                       {/* 信息 */}
                       <div className="p-3">
-                        <h4 className="font-bold text-sm mb-1">{series.name}</h4>
-                        <p className="text-xs text-muted-foreground mb-2">{series.windowType}</p>
+                        <h4 className="font-bold text-sm mb-1">
+                          {series.name}
+                        </h4>
+                        <p className="text-xs text-muted-foreground mb-2">
+                          {series.windowType}
+                        </p>
                         <div className="flex gap-1.5 text-[10px]">
-                          <Badge variant="secondary">{series.windResistance}级风压</Badge>
-                          <Badge variant="secondary">{series.budgetRange.split('-')[0]}</Badge>
+                          <Badge variant="secondary">
+                            {series.windResistance}级风压
+                          </Badge>
+                          <Badge variant="secondary">
+                            {series.budgetRange.split("-")[0]}
+                          </Badge>
                         </div>
                       </div>
                     </button>
@@ -372,7 +431,12 @@ export default function DesignPage() {
                       <div>
                         <div className="text-muted-foreground mb-1">面积</div>
                         <div className="font-semibold">
-                          {((Number(designData.width) * Number(designData.height)) / 1000000).toFixed(2)} m²
+                          {(
+                            (Number(designData.width) *
+                              Number(designData.height)) /
+                            1000000
+                          ).toFixed(2)}{" "}
+                          m²
                         </div>
                       </div>
                       <div>
@@ -393,7 +457,9 @@ export default function DesignPage() {
         {currentStage > 1 && (
           <div className="max-w-7xl mx-auto">
             <Card className="p-8 text-center">
-              <h2 className="text-xl font-bold mb-2">阶段 {currentStage}: {designStages[currentStage - 1]?.name}</h2>
+              <h2 className="text-xl font-bold mb-2">
+                阶段 {currentStage}: {designStages[currentStage - 1]?.name}
+              </h2>
               <p className="text-muted-foreground">功能开发中...</p>
             </Card>
           </div>
@@ -413,10 +479,10 @@ export default function DesignPage() {
             <Button
               className="h-32 flex flex-col gap-3 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
               onClick={() => {
-                setShowUploadDialog(false)
-                updateData("aiRecognized", true)
-                updateData("width", "1800")
-                updateData("height", "1500")
+                setShowUploadDialog(false);
+                updateData("aiRecognized", true);
+                updateData("width", "1800");
+                updateData("height", "1500");
               }}
             >
               <Camera className="h-10 w-10" />
@@ -429,10 +495,10 @@ export default function DesignPage() {
               variant="outline"
               className="h-32 flex flex-col gap-3 border-2"
               onClick={() => {
-                setShowUploadDialog(false)
-                updateData("aiRecognized", true)
-                updateData("width", "2000")
-                updateData("height", "1600")
+                setShowUploadDialog(false);
+                updateData("aiRecognized", true);
+                updateData("width", "2000");
+                updateData("height", "1600");
               }}
             >
               <Upload className="h-10 w-10" />
@@ -445,6 +511,5 @@ export default function DesignPage() {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-
