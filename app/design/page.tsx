@@ -646,7 +646,7 @@ export default function DesignPage() {
               {currentStage < designStages.length ? (
                 <ChevronRight className="h-3.5 w-3.5" />
               ) : (
-                <Download className="h-3.5 w-3.5" />
+                ""
               )}
             </Button>
           </div>
