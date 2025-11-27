@@ -1,7 +1,15 @@
-import Link from "next/link"
-import { Pen, BookOpen, Package, Sparkles, FolderOpen, Home, ArrowUpRight } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
+import Link from "next/link";
+import {
+  Pen,
+  BookOpen,
+  Package,
+  Sparkles,
+  FolderOpen,
+  Home,
+  ArrowUpRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function HomePage() {
   return (
@@ -29,15 +37,19 @@ export default function HomePage() {
               <Pen className="w-4 h-4 md:w-5 md:h-5 text-white -rotate-45" />
             </div>
             <div className="hidden sm:flex flex-col">
-              <h1 className="text-base md:text-lg font-bold text-foreground dark:text-white">门窗智能设计平台</h1>
-              <span className="text-xs text-muted-foreground dark:text-white/50">专业 · 高效 · 智能</span>
+              <h1 className="text-base md:text-lg font-bold text-foreground dark:text-white">
+                门窗智能设计平台
+              </h1>
+              <span className="text-xs text-muted-foreground dark:text-white/50">
+                专业 · 高效 · 智能
+              </span>
             </div>
           </Link>
-          
+
           {/* 右侧操作区 */}
           <div className="flex items-center gap-2 md:gap-3">
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               className="text-foreground/80 dark:text-white/80 hover:text-foreground dark:hover:text-white hover:bg-accent dark:hover:bg-white/10 text-sm h-9 px-3 md:px-4"
             >
               学习中心
@@ -67,16 +79,20 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* 内容 */}
                   <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
                     <div className="flex-1 flex flex-col justify-center">
-                      <h2 className="text-2xl md:text-3xl font-bold text-foreground dark:text-white mb-3 md:mb-4">开始设计</h2>
+                      <h2 className="text-2xl md:text-3xl font-bold text-foreground dark:text-white mb-3 md:mb-4">
+                        开始设计
+                      </h2>
                       <p className="text-muted-foreground dark:text-white/70 text-sm md:text-base mb-4 md:mb-6">
-                        使用专业工具快速<br />设计您的门窗方案
+                        使用专业工具快速
+                        <br />
+                        设计您的门窗方案
                       </p>
                     </div>
-                    
+
                     <div className="flex justify-end">
                       <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-primary/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-primary/20 dark:group-hover:bg-white/20 transition-colors">
                         <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
@@ -99,12 +115,14 @@ export default function HomePage() {
                   {/* 内容 */}
                   <div className="relative z-10 p-6 md:p-8 h-full flex flex-col justify-between">
                     <div className="flex-1 flex flex-col justify-center">
-                      <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">AI 封窗建议</h2>
+                      <h2 className="text-xl md:text-2xl font-bold text-white mb-3 md:mb-4">
+                        AI 封窗建议
+                      </h2>
                       <p className="text-white/80 text-xs md:text-sm mb-4 md:mb-6">
                         获取智能化的封窗解决方案，AI助力精准决策
                       </p>
                     </div>
-                    
+
                     <div className="flex justify-end">
                       <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                         <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-white" />
@@ -122,12 +140,14 @@ export default function HomePage() {
                 <div className="group h-full min-h-[180px] lg:min-h-[200px] backdrop-blur-xl bg-gradient-to-br from-purple-500/20 to-pink-500/10 rounded-2xl md:rounded-3xl border border-border/50 dark:border-white/20 hover:border-purple-400/50 dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
                   <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-between">
                     <div>
-                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">案例库</h3>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">
+                        案例库
+                      </h3>
                       <p className="text-muted-foreground dark:text-white/70 text-xs md:text-sm">
                         浏览精选的门窗设计案例
                       </p>
                     </div>
-                    
+
                     <div className="flex justify-end">
                       <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-purple-500/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-purple-500/20 dark:group-hover:bg-white/20 transition-colors">
                         <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
@@ -142,12 +162,14 @@ export default function HomePage() {
                 <div className="group h-full min-h-[180px] lg:min-h-[200px] backdrop-blur-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 rounded-2xl md:rounded-3xl border border-border/50 dark:border-white/20 hover:border-emerald-400/50 dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
                   <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-between">
                     <div>
-                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">产品库</h3>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">
+                        产品库
+                      </h3>
                       <p className="text-muted-foreground dark:text-white/70 text-xs md:text-sm">
                         探索完整的门窗产品目录
                       </p>
                     </div>
-                    
+
                     <div className="flex justify-end">
                       <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-emerald-500/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-emerald-500/20 dark:group-hover:bg-white/20 transition-colors">
                         <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
@@ -162,12 +184,14 @@ export default function HomePage() {
                 <div className="group h-full min-h-[180px] lg:min-h-[200px] backdrop-blur-xl bg-gradient-to-r from-orange-500/20 to-amber-500/10 rounded-2xl md:rounded-3xl border border-border/50 dark:border-white/20 hover:border-orange-400/50 dark:hover:border-white/30 transition-all duration-300 overflow-hidden relative active:scale-[0.98] touch-manipulation">
                   <div className="relative z-10 p-5 md:p-6 h-full flex flex-col justify-between">
                     <div>
-                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">我的方案</h3>
+                      <h3 className="text-lg md:text-xl font-bold text-foreground dark:text-white mb-2 md:mb-3">
+                        我的方案
+                      </h3>
                       <p className="text-muted-foreground dark:text-white/70 text-xs md:text-sm">
                         管理和查看您的门窗设计方案
                       </p>
                     </div>
-                    
+
                     <div className="flex justify-end">
                       <div className="w-9 h-9 md:w-11 md:h-11 rounded-xl md:rounded-2xl backdrop-blur-sm bg-orange-500/10 dark:bg-white/10 flex items-center justify-center group-hover:bg-orange-500/20 dark:group-hover:bg-white/20 transition-colors">
                         <ArrowUpRight className="w-4 h-4 md:w-5 md:h-5 text-foreground dark:text-white" />
@@ -184,12 +208,27 @@ export default function HomePage() {
         <footer className="h-12 md:h-14 flex items-center justify-center px-6 md:px-10 flex-shrink-0 border-t border-border/50 dark:border-white/5">
           <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 text-xs text-muted-foreground dark:text-white/40">
             <span>© 2024 门窗智能设计平台</span>
-            <Link href="/help" className="hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation">帮助中心</Link>
-            <Link href="/privacy" className="hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation">隐私政策</Link>
-            <Link href="/terms" className="hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation">服务条款</Link>
+            <Link
+              href="/help"
+              className="min-h-0 hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation "
+            >
+              帮助中心
+            </Link>
+            <Link
+              href="/privacy"
+              className="min-h-0 hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation"
+            >
+              隐私政策
+            </Link>
+            <Link
+              href="/terms"
+              className="min-h-0 hover:text-foreground dark:hover:text-white/60 transition-colors touch-manipulation"
+            >
+              服务条款
+            </Link>
           </div>
         </footer>
       </main>
     </div>
-  )
+  );
 }

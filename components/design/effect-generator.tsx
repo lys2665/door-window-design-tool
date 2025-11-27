@@ -374,20 +374,6 @@ export function EffectGenerator({ windowData, styleConfig, uploadedPhoto }: Effe
                   </div>
                 </div>
               )}
-              
-              {/* 蒙层 + 生成效果图按钮（居中显示）*/}
-              {!isDetecting && (
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                  <Button 
-                    size="lg"
-                    className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-2xl text-base px-8 py-6 h-auto"
-                    onClick={generateEffect}
-                  >
-                    <Sparkles className="h-6 w-6" />
-                    生成效果图
-                  </Button>
-                </div>
-              )}
             </div>
           )}
 

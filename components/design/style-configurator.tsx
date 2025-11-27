@@ -267,38 +267,6 @@ export function StyleConfigurator({ windowData, onConfigChange }: StyleConfigura
               )}
             </div>
           </div>
-
-          {/* 底部操作按钮 */}
-          <div className="flex-none p-2 bg-muted/20 space-y-1.5">
-            <div className="flex gap-1.5">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSaveConfig}
-                className="flex-1 text-xs h-7"
-              >
-                <Save className="w-3 h-3 mr-1" />
-                保存
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleResetConfig}
-                className="flex-1 text-xs h-7"
-              >
-                <RotateCcw className="w-3 h-3 mr-1" />
-                重置
-              </Button>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleLoadConfig}
-              className="w-full text-xs h-6"
-            >
-              加载已保存配置
-            </Button>
-          </div>
         </Card>
       </div>
 
