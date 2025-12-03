@@ -203,6 +203,16 @@
   }
 }
 
+/* 自定义动画关键帧 */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* iPad/Pad 设备优化 (1280x800 及类似尺寸) */
 @media (min-width: 768px) and (max-width: 1366px) {
   :root {
