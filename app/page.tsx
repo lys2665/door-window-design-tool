@@ -18,9 +18,10 @@ export default function HomePage() {
         {/* 顶部栏 */}
         <header className="h-16 md:h-20 flex items-center justify-between px-6 md:px-10 lg:px-12 flex-shrink-0">
           {/* Logo区域 */}
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 md:w-11 md:h-11 rounded-2xl bg-black dark:bg-white flex items-center justify-center">
-              <Pen className="w-5 h-5 md:w-6 md:h-6 text-white dark:text-black" />
+          <Link href=
+          "/" className="flex items-center gap-3">
+            <div className="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center transform rotate-45">
+              <Pen className="w-4 h-4 md:w-5 md:h-5 text-white -rotate-45" />
             </div>
             <div className="hidden sm:flex flex-col">
               <h1 className="text-lg md:text-xl font-bold text-black dark:text-white">
