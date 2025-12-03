@@ -1,610 +1,480 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 import {
   Sparkles,
+  Send,
+  Home,
+  Bot,
+  User,
+  Loader2,
   ChevronRight,
-  Check,
-  Mic,
-  Camera,
-  Upload,
-  Wind,
-  Droplets,
+  CheckCircle2,
   Shield,
   Volume2,
-  Thermometer,
-  Eye,
-  FileText,
-  Home,
+  Baby,
+  Wind,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Slider } from "@/components/ui/slider"
-import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ThemeToggle } from "@/components/theme-toggle"
 
-const steps = [
-  { id: 1, title: "基本信息", description: "房屋情况与测量" },
-  { id: 2, title: "性能与风格", description: "需求与预算" },
-]
+// 对话流程配置
+const conversationFlow = {
+  greeting: {
+    question: "您好！为了给您更合适的门窗建议，我先确认下——这扇窗户是装在哪个房间呢？",
+    type: "room",
+    next: "concern",
+  },
+  concern: {
+    question: "明白了。那您对这扇窗，最关心哪些方面的性能？",
+    options: ["隔音", "保温", "安全", "外观风格"],
+    type: "concern",
+    next: "noise_source",
+  },
+  noise_source: {
+    question: (concern: string) => {
+      if (concern === "隔音") {
+        return "理解！方便问一下，窗外主要是什么噪音源？比如是马路、学校，还是小区内部活动？"
+      }
+      return "好的，还有其他特别关注的点吗？"
+    },
+    type: "noise_source",
+    next: "recommendation",
+  },
+  recommendation: {
+    type: "recommendation",
+    next: "additional_needs",
+  },
+  additional_needs: {
+    question: "除了刚才说的，还有其他特别关注的点吗？比如安全、通风？",
+    type: "additional",
+    next: "final",
+  },
+  final: {
+    type: "final",
+  },
+}
+
+// 消息类型
+type Message = {
+  id: string
+  role: "user" | "assistant"
+  content: string
+  timestamp: Date
+  type?: "text" | "recommendation" | "options"
+  options?: string[]
+  recommendation?: {
+    product: string
+    series: string
+    glass: string
+    features: string[]
+    soundproof: string
+    note: string
+  }
+}
+
+// 用户信息收集
+type UserData = {
+  room?: string
+  concern?: string
+  noiseSource?: string
+  additionalNeeds?: string[]
+}
 
 export default function AIPage() {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [formData, setFormData] = useState({
-    houseType: "",
-    area: "",
-    floor: "",
-    totalFloors: "",
-    measurements: "",
-    specialIssues: "",
-    photos: [] as string[],
-    noiseLevel: "",
-    windPressure: "",
-    environment: [] as string[],
-    soundInsulation: false,
-    thermalInsulation: false,
-    windResistance: false,
-    waterproof: false,
-    security: false,
-    style: "",
-    budget: [50000],
-  })
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: "1",
+      role: "assistant",
+      content: "您好！为了给您更合适的门窗建议，我先确认下——这扇窗户是装在哪个房间呢？",
+      timestamp: new Date(),
+      type: "text",
+    },
+  ])
+  const [inputValue, setInputValue] = useState("")
+  const [isTyping, setIsTyping] = useState(false)
+  const [conversationStep, setConversationStep] = useState("greeting")
+  const [userData, setUserData] = useState<UserData>({})
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const updateFormData = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
-  const nextStep = () => {
-    if (currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
-    }
-  }
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
 
-  const prevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
-
-  const calculateEstimatedPrice = () => {
-    let basePrice = 15000
-    if (formData.soundInsulation) basePrice += 8000
-    if (formData.thermalInsulation) basePrice += 6000
-    if (formData.windResistance) basePrice += 7000
-    if (formData.waterproof) basePrice += 5000
-    if (formData.security) basePrice += 4000
-
-    const area = Number.parseFloat(formData.area) || 0
-    const pricePerSqm = basePrice / 100
-    return Math.round(area * pricePerSqm)
-  }
-
-  const getRecommendedProduct = () => {
-    if (formData.windResistance && formData.soundInsulation) {
-      return {
-        name: "铝合金断桥推拉窗系统",
-        series: "高端系列",
-        features: ["9级抗风压", "40dB隔音", "1.8mm型材壁厚"],
+  // AI回复延迟模拟
+  const addAIMessage = (content: string, type: "text" | "recommendation" | "options" = "text", options?: string[], recommendation?: any) => {
+    setIsTyping(true)
+    setTimeout(() => {
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content,
+        timestamp: new Date(),
+        type,
+        options,
+        recommendation,
       }
-    } else if (formData.thermalInsulation) {
-      return {
-        name: "节能保温平开窗系统",
-        series: "节能系列",
-        features: ["K值≤2.0", "三玻两腔", "1.6mm型材壁厚"],
-      }
+      setMessages((prev) => [...prev, newMessage])
+      setIsTyping(false)
+    }, 1000 + Math.random() * 1000)
+  }
+
+  // 处理用户输入
+  const handleSendMessage = (message?: string) => {
+    const text = message || inputValue.trim()
+    if (!text) return
+
+    // 添加用户消息
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: "user",
+      content: text,
+      timestamp: new Date(),
+      type: "text",
     }
-    return {
-      name: "标准铝合金窗系统",
-      series: "经济系列",
-      features: ["6级抗风压", "30dB隔音", "1.4mm型材壁厚"],
+    setMessages((prev) => [...prev, userMessage])
+    setInputValue("")
+
+    // 根据对话流程处理
+    handleConversationFlow(text)
+  }
+
+  // 对话流程处理
+  const handleConversationFlow = (userInput: string) => {
+    const input = userInput.toLowerCase()
+
+    switch (conversationStep) {
+      case "greeting":
+        // 收集房间信息
+        setUserData((prev) => ({ ...prev, room: userInput }))
+        setConversationStep("concern")
+        addAIMessage(
+          "明白了。那您对这扇窗，最关心哪些方面的性能？",
+          "options",
+          ["隔音", "保温", "安全", "外观风格"]
+        )
+        break
+
+      case "concern":
+        // 收集关注点
+        setUserData((prev) => ({ ...prev, concern: userInput }))
+        
+        if (input.includes("隔音")) {
+          setConversationStep("noise_source")
+          addAIMessage(
+            `理解！${userData.room || "这个房间"}休息确实对安静环境要求高。方便问一下，窗外主要是什么噪音源？比如是马路、学校，还是小区内部活动？`
+          )
+        } else {
+          setConversationStep("additional_needs")
+          addAIMessage("好的，明白您的需求了。还有其他特别关注的点吗？比如安全、通风？")
+        }
+        break
+
+      case "noise_source":
+        // 收集噪音源信息
+        setUserData((prev) => ({ ...prev, noiseSource: userInput }))
+        setConversationStep("recommendation")
+        
+        // 生成推荐方案
+        generateRecommendation(userInput)
+        break
+
+      case "recommendation":
+        setConversationStep("additional_needs")
+        addAIMessage("除了刚才说的，还有其他特别关注的点吗？比如安全、通风？")
+        break
+
+      case "additional_needs":
+        // 收集额外需求
+        const needs = userData.additionalNeeds || []
+        setUserData((prev) => ({ ...prev, additionalNeeds: [...needs, userInput] }))
+        
+        if (input.includes("孩子") || input.includes("小孩") || input.includes("儿童")) {
+          addAIMessage(
+            "明白，从设计规范来说，我们通常会把可开启扇的执手高度做到 1500mm 以上，这样小朋友够不到。同时，下方建议做成固定玻璃扇，既保证采光，又杜绝攀爬风险。"
+          )
+          setTimeout(() => {
+            addAIMessage("如果您还想更安心一点，还可以加装一个隐藏式儿童安全锁。")
+          }, 2500)
+          setTimeout(() => {
+            setConversationStep("final")
+            addAIMessage("您看这样的方案方向是否符合您的预期？我可以再帮您出一份详细的配置清单和效果图参考。")
+          }, 4500)
+        } else {
+          setConversationStep("final")
+          addAIMessage("您看这样的方案方向是否符合您的预期？我可以再帮您出一份详细的配置清单和效果图参考。")
+        }
+        break
+
+      case "final":
+        addAIMessage("好的！我会为您生成一份完整的门窗方案，包括产品配置、价格明细和3D效果图。请稍等片刻...")
+        setTimeout(() => {
+          addAIMessage("✅ 方案已生成！您可以点击右上角「查看完整方案」按钮查看详情，或继续与我沟通调整方案。")
+        }, 2000)
+        break
+
+      default:
+        addAIMessage("感谢您的反馈！还有什么需要我帮助的吗？")
     }
   }
 
-  const estimatedPrice = calculateEstimatedPrice()
-  const recommendedProduct = getRecommendedProduct()
+  // 生成推荐方案
+  const generateRecommendation = (noiseSource: string) => {
+    const input = noiseSource.toLowerCase()
+    let recommendation = {
+      product: "浩瀚86系列断桥铝系统窗",
+      series: "高端隔音系列",
+      glass: "6mm+15A+6mm+0.76PVB夹胶+5mm 不等厚中空夹胶玻璃",
+      features: ["专门针对低频噪音优化", "实测隔声性能≥40dB", "断桥铝型材", "多腔密封结构"],
+      soundproof: "40dB以上",
+      note: "不过也得跟您说明一下：整体隔音会跟墙体、安装等现实其他客观情况都有关系，所以这只是参考数值。",
+    }
+
+    if (input.includes("马路") || input.includes("主干道") || input.includes("大货车")) {
+      addAIMessage(
+        "根据声学数据，大货车通行时噪音大概在70分贝左右，而卧室夜间理想的安静环境要控制在30分贝以内。"
+      )
+      setTimeout(() => {
+        addAIMessage(
+          `结合您的需求和常见有效方案，我建议采用 **${recommendation.product}**，搭配 **"${recommendation.glass}"** 的配置。这种配置专门针对低频噪音优化，实测隔声性能可达${recommendation.soundproof}，能显著改善夜间睡眠环境。`,
+          "recommendation",
+          undefined,
+          recommendation
+        )
+      }, 2500)
+      setTimeout(() => {
+        addAIMessage(recommendation.note)
+      }, 4500)
+    } else {
+      setTimeout(() => {
+        addAIMessage(
+          `根据您描述的环境，我建议采用 **${recommendation.product}**，搭配专业的隔音玻璃配置。`,
+          "recommendation",
+          undefined,
+          recommendation
+        )
+      }, 1500)
+    }
+  }
+
+  // 快捷选项点击
+  const handleOptionClick = (option: string) => {
+    handleSendMessage(option)
+  }
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background dark:bg-[#2a2a2a] overflow-hidden">
+      {/* 主内容区 */}
       <main className="w-full flex flex-col">
-        <div className="h-full flex flex-col overflow-hidden">
-          {/* Header with Steps */}
-          <div className="border-b bg-card px-4 py-2.5 shrink-0 relative">
-            <div className="flex items-center justify-between">
-              {/* Left: Logo and Title */}
-              <div className="flex items-center gap-3 flex-shrink-0">
+        {/* 顶部导航栏 */}
+        <header className="h-14 md:h-16 border-b border-border dark:border-white/10 bg-card dark:bg-[#1f1f1f] flex-shrink-0 flex items-center justify-between px-4 md:px-6">
+          <div className="flex items-center gap-3">
                 <Link href="/">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
                     <Home className="h-4 w-4" />
                   </Button>
                 </Link>
-                <div>
-                  <h1 className="text-sm md:text-base font-semibold text-foreground">AI 封窗建议</h1>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">
-                    {steps[currentStep - 1]?.title}
-                  </p>
-                </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
               </div>
-              
-              {/* Center: Progress Steps */}
-              <div className="hidden md:flex items-center gap-2 absolute left-1/2 -translate-x-1/2">
-                {steps.map((step, index) => (
-                  <div key={step.id} className="flex items-center">
-                    <button
-                      onClick={() => setCurrentStep(step.id)}
-                      className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
-                        currentStep > step.id
-                          ? "bg-primary text-primary-foreground"
-                          : currentStep === step.id
-                            ? "bg-primary/20 text-primary border-2 border-primary"
-                            : "bg-muted text-muted-foreground hover:bg-muted/80"
-                      }`}
-                      title={step.title}
-                    >
-                      {currentStep > step.id ? <Check className="h-4 w-4" /> : `0${index + 1}`}
-                    </button>
-                    {index < steps.length - 1 && (
-                      <div className={`w-12 h-[2px] mx-1 transition-colors ${currentStep > step.id ? 'bg-primary' : 'bg-border'}`} />
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {/* Right: Navigation Buttons */}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={prevStep}
-                  disabled={currentStep === 1}
-                  className="gap-1.5 h-8"
-                >
-                  <ChevronRight className="h-3.5 w-3.5 rotate-180" />
-                  <span className="hidden sm:inline text-xs">上一步</span>
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={currentStep < steps.length ? nextStep : undefined}
-                  className="gap-1.5 h-8"
-                >
-                  <span className="hidden sm:inline text-xs">
-                    {currentStep < steps.length ? "下一步" : "生成方案"}
-                  </span>
-                  {currentStep < steps.length ? (
-                    <ChevronRight className="h-3.5 w-3.5" />
-                  ) : (
-                    <Sparkles className="h-3.5 w-3.5" />
-                  )}
-                </Button>
+              <div>
+                <h1 className="text-sm md:text-base font-bold text-foreground dark:text-white">
+                  AI 智能封窗顾问
+                </h1>
+                <p className="text-xs text-muted-foreground dark:text-white/50">
+                  专业 · 高效 · 智能
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Form Content */}
-          <div className="flex-1 overflow-auto">
-            <div className="p-4 md:p-6 max-w-6xl mx-auto h-full">
-              <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 md:gap-5 h-full">
-                {/* Left Column - Form */}
-                <div className="lg:col-span-3 min-h-0">
-                  <Card className="p-5 md:p-6 h-full overflow-auto">
-                    {/* Step 1 */}
-                    {currentStep === 1 && (
-                      <div className="space-y-5">
-                        {/* House Type */}
-                        <div>
-                          <Label className="text-sm font-medium mb-2.5 block">房屋类型</Label>
-                          <RadioGroup value={formData.houseType} onValueChange={(value) => updateFormData("houseType", value)}>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                              {["公寓", "别墅", "办公楼", "商业"].map((type, idx) => (
-                                <div
-                                  key={type}
-                                  className={`flex items-center justify-center border-2 rounded-xl p-3.5 cursor-pointer transition-all ${
-                                    formData.houseType === ["apartment", "villa", "office", "commercial"][idx]
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border hover:border-primary/50 hover:bg-accent"
-                                  }`}
-                                >
-                                  <RadioGroupItem
-                                    value={["apartment", "villa", "office", "commercial"][idx]}
-                                    id={type}
-                                    className="sr-only"
-                                  />
-                                  <Label htmlFor={type} className="cursor-pointer text-sm font-medium">{type}</Label>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Button variant="outline" size="sm" className="gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="hidden sm:inline">查看完整方案</span>
+            </Button>
+          </div>
+        </header>
+
+        {/* 对话区域 */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {/* 消息列表 */}
+          <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6">
+            <div className="max-w-4xl mx-auto space-y-4">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex gap-3 md:gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  {message.role === "assistant" && (
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                      <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
                                 </div>
-                              ))}
-                            </div>
-                          </RadioGroup>
-                        </div>
-
-                        {/* House Details */}
-                        <div className="grid grid-cols-3 gap-3 md:gap-4">
-                          <div>
-                            <Label htmlFor="area" className="text-sm font-medium mb-2 block">面积（㎡）</Label>
-                            <Input
-                              id="area"
-                              type="number"
-                              placeholder="120"
-                              value={formData.area}
-                              onChange={(e) => updateFormData("area", e.target.value)}
-                              className="h-11 md:h-12 text-base"
-                            />
+                  )}
+                  
+                  <div className={`flex-1 max-w-[85%] md:max-w-[75%] ${message.role === "user" ? "flex justify-end" : ""}`}>
+                    {message.type === "recommendation" && message.recommendation ? (
+                      // 推荐方案卡片
+                      <Card className="p-4 md:p-5 bg-gradient-to-br from-blue-50/80 to-indigo-50/80 dark:from-blue-950/40 dark:to-indigo-950/40 border-blue-200 dark:border-blue-800">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-lg bg-blue-500 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle2 className="w-5 h-5 text-white" />
                           </div>
-                          <div>
-                            <Label htmlFor="floor" className="text-sm font-medium mb-2 block">所在楼层</Label>
-                            <Input
-                              id="floor"
-                              type="number"
-                              placeholder="15"
-                              value={formData.floor}
-                              onChange={(e) => updateFormData("floor", e.target.value)}
-                              className="h-11 md:h-12 text-base"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="totalFloors" className="text-sm font-medium mb-2 block">总楼层</Label>
-                            <Input
-                              id="totalFloors"
-                              type="number"
-                              placeholder="30"
-                              value={formData.totalFloors}
-                              onChange={(e) => updateFormData("totalFloors", e.target.value)}
-                              className="h-11 md:h-12 text-base"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Measurements */}
-                        <div>
-                          <Label htmlFor="measurements" className="text-sm font-medium mb-2 block">窗户尺寸（宽×高，mm）</Label>
-                          <Textarea
-                            id="measurements"
-                            placeholder="客厅：1800×1500&#10;卧室：1200×1400"
-                            value={formData.measurements}
-                            onChange={(e) => updateFormData("measurements", e.target.value)}
-                            className="min-h-24 md:min-h-28 text-base resize-none"
-                          />
-                        </div>
-
-                        {/* Special Issues */}
-                        <div>
-                          <Label htmlFor="specialIssues" className="text-sm font-medium mb-2 block">特殊问题（选填）</Label>
-                          <Textarea
-                            id="specialIssues"
-                            placeholder="墙体不平整、洞口尺寸不规则等"
-                            value={formData.specialIssues}
-                            onChange={(e) => updateFormData("specialIssues", e.target.value)}
-                            className="min-h-20 md:min-h-24 text-base resize-none"
-                          />
-                        </div>
-
-                        {/* Photo Upload */}
-                        <div className="border-2 border-dashed rounded-xl p-5 bg-muted/30 hover:bg-muted/50 transition-colors">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Camera className="h-5 w-5 text-primary" />
-                            <h3 className="text-sm font-medium text-foreground">现场照片</h3>
-                          </div>
-                          <p className="text-xs text-muted-foreground mb-3">上传窗户位置、墙体情况等照片，帮助更准确分析</p>
-                          <Button variant="outline" size="default" className="w-full gap-2 h-11 bg-white">
-                            <Upload className="h-4 w-4" />
-                            选择照片或拍照
-                          </Button>
-                        </div>
-
-                        {/* Environment Analysis */}
-                        <div className="space-y-4 pt-2">
-                          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <span className="w-1 h-4 bg-primary rounded-full"></span>
-                            环境分析
-                          </h3>
-
-                          {/* Noise Detection */}
-                          <div className="border-2 rounded-xl p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Mic className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                              <h4 className="text-sm font-medium text-foreground">噪音检测（选填）</h4>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2.5">
-                              <Button size="default" className="h-11 text-sm bg-blue-600 hover:bg-blue-700">
-                                <Mic className="h-4 w-4 mr-2" />
-                                启动检测
-                              </Button>
-                              <Input
-                                placeholder="或输入分贝值"
-                                value={formData.noiseLevel}
-                                onChange={(e) => updateFormData("noiseLevel", e.target.value)}
-                                className="h-11 text-base"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Environment Factors */}
-                          <div>
-                            <Label className="text-sm font-medium mb-2.5 block">周边环境（可多选）</Label>
-                            <div className="grid grid-cols-2 gap-2.5">
-                              {[
-                                { id: "street", label: "临街噪音" },
-                                { id: "highrise", label: "高层风压" },
-                                { id: "coastal", label: "沿海盐雾" },
-                                { id: "industrial", label: "工业污染" },
-                              ].map((env) => (
-                                <div
-                                  key={env.id}
-                                  onClick={() => {
-                                    if (formData.environment.includes(env.id)) {
-                                      updateFormData("environment", formData.environment.filter((e) => e !== env.id))
-                                    } else {
-                                      updateFormData("environment", [...formData.environment, env.id])
-                                    }
-                                  }}
-                                  className={`flex items-center justify-center gap-2 border-2 rounded-xl p-3.5 cursor-pointer transition-all ${
-                                    formData.environment.includes(env.id)
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border hover:border-primary/50 hover:bg-accent"
-                                  }`}
-                                >
-                                  <Checkbox
-                                    id={env.id}
-                                    checked={formData.environment.includes(env.id)}
-                                    className="pointer-events-none"
-                                  />
-                                  <Label htmlFor={env.id} className="cursor-pointer text-sm font-medium">
-                                    {env.label}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Wind Pressure */}
-                          <div>
-                            <Label className="text-sm font-medium mb-2.5 block">风压等级</Label>
-                            <RadioGroup value={formData.windPressure} onValueChange={(value) => updateFormData("windPressure", value)}>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
-                                {["低层", "中层", "高层", "超高层"].map((level, idx) => (
-                                  <div
-                                    key={level}
-                                    className={`flex items-center justify-center border-2 rounded-xl p-3.5 cursor-pointer transition-all ${
-                                      formData.windPressure === ["low", "medium", "high", "super"][idx]
-                                        ? "border-primary bg-primary/5"
-                                        : "border-border hover:border-primary/50 hover:bg-accent"
-                                    }`}
-                                  >
-                                    <RadioGroupItem 
-                                      value={["low", "medium", "high", "super"][idx]} 
-                                      id={level}
-                                      className="sr-only"
-                                    />
-                                    <Label htmlFor={level} className="cursor-pointer text-sm font-medium">
-                                      {level}
-                                    </Label>
-                                  </div>
-                                ))}
-                              </div>
-                            </RadioGroup>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Step 2 */}
-                    {currentStep === 2 && (
-                      <div className="space-y-5">
-                        {/* Performance Requirements */}
-                        <div>
-                          <Label className="text-sm font-medium mb-2.5 block">性能要求（可多选）</Label>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                            {[
-                              { id: "soundInsulation", icon: Volume2, label: "隔音性能", desc: "降低外界噪音" },
-                              { id: "thermalInsulation", icon: Thermometer, label: "保温隔热", desc: "冬暖夏凉节能" },
-                              { id: "windResistance", icon: Wind, label: "抗风压", desc: "适合高层建筑" },
-                              { id: "waterproof", icon: Droplets, label: "水密性", desc: "防止雨水渗透" },
-                              { id: "security", icon: Shield, label: "安全防护", desc: "防盗防坠落" },
-                            ].map((perf) => (
-                              <div
-                                key={perf.id}
-                                onClick={() => updateFormData(perf.id, !formData[perf.id as keyof typeof formData])}
-                                className={`flex items-center gap-3 border-2 rounded-xl p-4 cursor-pointer transition-all ${
-                                  formData[perf.id as keyof typeof formData]
-                                    ? "border-primary bg-primary/5"
-                                    : "border-border hover:border-primary/50 hover:bg-accent"
-                                }`}
-                              >
-                                <Checkbox
-                                  id={perf.id}
-                                  checked={formData[perf.id as keyof typeof formData] as boolean}
-                                  onCheckedChange={(checked) => updateFormData(perf.id, checked)}
-                                  className="pointer-events-none"
-                                />
-                                <perf.icon className="h-5 w-5 text-primary shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <Label htmlFor={perf.id} className="text-sm font-medium cursor-pointer">
-                                    {perf.label}
-                                  </Label>
-                                  <p className="text-xs text-muted-foreground">{perf.desc}</p>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Style Preference */}
-                        <div>
-                          <Label className="text-sm font-medium mb-2.5 block">装修风格</Label>
-                          <RadioGroup value={formData.style} onValueChange={(value) => updateFormData("style", value)}>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2.5">
-                              {["现代简约", "新中式", "欧式", "工业风", "北欧", "其他"].map((style, idx) => (
-                                <div
-                                  key={style}
-                                  className={`flex items-center justify-center border-2 rounded-xl p-3.5 cursor-pointer transition-all ${
-                                    formData.style === ["modern", "chinese", "european", "industrial", "nordic", "other"][idx]
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border hover:border-primary/50 hover:bg-accent"
-                                  }`}
-                                >
-                                  <RadioGroupItem
-                                    value={["modern", "chinese", "european", "industrial", "nordic", "other"][idx]}
-                                    id={style}
-                                    className="sr-only"
-                                  />
-                                  <Label htmlFor={style} className="cursor-pointer text-sm font-medium">
-                                    {style}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          </RadioGroup>
-                        </div>
-
-                        {/* Budget Range */}
-                        <div>
-                          <Label className="text-sm font-medium mb-3 block">预算范围</Label>
-                          <div className="space-y-4">
-                            <Slider
-                              value={formData.budget}
-                              onValueChange={(value) => updateFormData("budget", value)}
-                              max={200000}
-                              min={10000}
-                              step={5000}
-                              className="w-full py-2"
-                            />
-                            <div className="flex items-center justify-between">
-                              <span className="text-xs text-muted-foreground">¥1万</span>
-                              <div className="px-4 py-2 rounded-lg bg-primary/10 border border-primary/20">
-                                <span className="text-lg font-bold text-primary">
-                                  ¥{(formData.budget[0] / 10000).toFixed(1)}万
-                                </span>
-                              </div>
-                              <span className="text-xs text-muted-foreground">¥20万</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </Card>
-                </div>
-
-                {/* Right Column - Summary */}
-                <div className="lg:col-span-2 space-y-3 md:space-y-4 min-h-0">
-                  {/* Quotation Card */}
-                  <Card className="p-4 md:p-5 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                        <h3 className="text-sm font-semibold text-foreground">预估报价</h3>
-                      </div>
-                      <div className="text-2xl md:text-3xl font-bold text-blue-600 dark:text-blue-400">
-                        ¥{estimatedPrice.toLocaleString()}
-                      </div>
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-3">基于当前选择的性能要求和房屋面积</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex flex-col gap-1 p-2 rounded-lg bg-white/50">
-                        <span className="text-[10px] text-muted-foreground">基础费用</span>
-                        <span className="text-sm font-semibold">¥15,000</span>
-                      </div>
-                      {formData.soundInsulation && (
-                        <div className="flex flex-col gap-1 p-2 rounded-lg bg-blue-50">
-                          <span className="text-[10px] text-muted-foreground">隔音升级</span>
-                          <span className="text-sm font-semibold text-blue-600">+¥8,000</span>
-                        </div>
-                      )}
-                      {formData.thermalInsulation && (
-                        <div className="flex flex-col gap-1 p-2 rounded-lg bg-blue-50">
-                          <span className="text-[10px] text-muted-foreground">保温升级</span>
-                          <span className="text-sm font-semibold text-blue-600">+¥6,000</span>
-                        </div>
-                      )}
-                      {formData.windResistance && (
-                        <div className="flex flex-col gap-1 p-2 rounded-lg bg-blue-50">
-                          <span className="text-[10px] text-muted-foreground">抗风压升级</span>
-                          <span className="text-sm font-semibold text-blue-600">+¥7,000</span>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-
-                  {/* Solution Preview */}
-                  {currentStep === 2 && (
-                    <Card className="p-4 md:p-5">
-                      <div className="flex items-center gap-2 mb-3">
-                        <Eye className="h-5 w-5 text-primary" />
-                        <h3 className="text-sm font-semibold text-foreground">推荐方案</h3>
-                      </div>
-
-                      <div className="aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 rounded-xl mb-3 overflow-hidden">
-                        <img
-                          src="/modern-aluminum-sliding-window.jpg"
-                          alt="推荐产品"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <div>
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="text-sm font-semibold text-foreground">{recommendedProduct.name}</h4>
+                          <div className="flex-1">
+                            <h3 className="font-bold text-foreground dark:text-white mb-1">
+                              {message.recommendation.product}
+                            </h3>
                             <Badge variant="secondary" className="text-xs">
-                              {recommendedProduct.series}
+                              {message.recommendation.series}
                             </Badge>
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {recommendedProduct.features.map((feature) => (
-                              <Badge key={feature} variant="outline" className="text-xs">
-                                {feature}
-                              </Badge>
+                        </div>
+
+                        <div className="space-y-3 text-sm text-foreground/90 dark:text-white/90">
+                          <div className="p-3 rounded-lg bg-white/50 dark:bg-white/5">
+                            <div className="font-medium mb-1 flex items-center gap-2">
+                              <Volume2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                              玻璃配置
+                            </div>
+                            <p className="text-xs">{message.recommendation.glass}</p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            {message.recommendation.features.map((feature, idx) => (
+                              <div key={idx} className="flex items-center gap-2 text-xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                <span>{feature}</span>
+                              </div>
                             ))}
                           </div>
                         </div>
+                      </Card>
+                    ) : message.type === "options" && message.options ? (
+                      // 快捷选项
+                      <div className="space-y-3">
+                        <div className="px-4 py-3 rounded-2xl bg-muted/80 dark:bg-white/5 text-foreground dark:text-white text-sm md:text-base">
+                          {message.content}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {message.options.map((option, idx) => (
+                            <Button
+                              key={idx}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleOptionClick(option)}
+                              className="gap-2 border-2 hover:border-primary hover:bg-primary/5"
+                            >
+                              {option === "隔音" && <Volume2 className="w-4 h-4" />}
+                              {option === "保温" && <Wind className="w-4 h-4" />}
+                              {option === "安全" && <Shield className="w-4 h-4" />}
+                              {option}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      // 普通文本消息
+                      <div
+                        className={`px-4 py-3 rounded-2xl text-sm md:text-base ${
+                          message.role === "user"
+                            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white"
+                            : "bg-muted/80 dark:bg-white/5 text-foreground dark:text-white"
+                        }`}
+                      >
+                        {message.content}
+                      </div>
+                    )}
+                    
+                    <div
+                      className={`text-xs text-muted-foreground dark:text-white/40 mt-1.5 ${
+                        message.role === "user" ? "text-right" : "text-left"
+                      }`}
+                    >
+                      {message.timestamp.toLocaleTimeString("zh-CN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </div>
+                </div>
 
-                        <div className="grid grid-cols-3 gap-2 pt-2">
-                          <div className="text-center p-2 rounded-lg bg-muted/50">
-                            <div className="text-xs text-muted-foreground mb-1">壁厚</div>
-                            <div className="text-sm font-semibold">
-                              {recommendedProduct.features.find((f) => f.includes("mm"))?.split(" ")[0] || "1.4mm"}
-                            </div>
+                  {message.role === "user" && (
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                      <User className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                        </div>
+                      )}
+                        </div>
+              ))}
+              
+              {/* AI正在输入 */}
+              {isTyping && (
+                <div className="flex gap-3 md:gap-4 justify-start">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
+                        </div>
+                  <div className="px-4 py-3 rounded-2xl bg-muted/80 dark:bg-white/5">
+                    <div className="flex gap-1.5">
+                      <div className="w-2 h-2 rounded-full bg-foreground/40 animate-bounce" />
+                      <div className="w-2 h-2 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "0.2s" }} />
+                      <div className="w-2 h-2 rounded-full bg-foreground/40 animate-bounce" style={{ animationDelay: "0.4s" }} />
+                    </div>
                           </div>
-                          <div className="text-center p-2 rounded-lg bg-muted/50">
-                            <div className="text-xs text-muted-foreground mb-1">抗风压</div>
-                            <div className="text-sm font-semibold">
-                              {recommendedProduct.features.find((f) => f.includes("级"))?.split("抗")[0] || "6级"}
-                            </div>
-                          </div>
-                          <div className="text-center p-2 rounded-lg bg-muted/50">
-                            <div className="text-xs text-muted-foreground mb-1">隔音</div>
-                            <div className="text-sm font-semibold">
-                              {recommendedProduct.features.find((f) => f.includes("dB")) || "30dB"}
-                            </div>
+                        </div>
+              )}
+              
+              <div ref={messagesEndRef} />
                           </div>
                         </div>
 
-                        <Button size="default" className="w-full mt-2 gap-2 h-10">
-                          <Eye className="h-4 w-4" />
-                          查看详细方案
-                        </Button>
-                      </div>
-                    </Card>
+          {/* 输入区域 */}
+          <div className="border-t border-border dark:border-white/10 bg-card dark:bg-[#1f1f1f] px-4 md:px-6 py-3 md:py-4 flex-shrink-0">
+            <div className="max-w-4xl mx-auto">
+              <div className="flex gap-2 md:gap-3">
+                <Input
+                  ref={inputRef}
+                  type="text"
+                  placeholder="输入您的需求或问题..."
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSendMessage()
+                    }
+                  }}
+                  className="flex-1 h-11 md:h-12 text-base"
+                  disabled={isTyping}
+                />
+                <Button
+                  size="lg"
+                  onClick={() => handleSendMessage()}
+                  disabled={!inputValue.trim() || isTyping}
+                  className="h-11 md:h-12 px-4 md:px-6 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700"
+                >
+                  {isTyping ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4 md:w-5 md:h-5" />
+                      <span className="hidden sm:inline ml-2">发送</span>
+                    </>
                   )}
-
-                  {/* Tips Card */}
-                  <Card className="p-3 md:p-4 bg-amber-50/80 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                    <div className="flex items-start gap-2">
-                      <span className="text-base shrink-0">💡</span>
-                      <div>
-                        <h4 className="text-xs font-semibold text-amber-900 dark:text-amber-100 mb-1">温馨提示</h4>
-                        <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
-                          {currentStep === 1
-                            ? "准确的测量数据和现场照片能帮助我们提供更精确的方案建议"
-                            : "选择更多性能要求会提高造价，但能获得更好的使用体验"}
-                        </p>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
+                </Button>
               </div>
+              
+              <p className="text-xs text-muted-foreground dark:text-white/40 mt-2 text-center">
+                💡 AI顾问会根据您的回答，为您推荐最合适的门窗方案
+              </p>
             </div>
           </div>
         </div>
